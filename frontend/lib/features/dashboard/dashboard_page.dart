@@ -639,12 +639,13 @@ class _ResponsiveGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (columns == 1)
+    if (columns == 1) {
       return Column(
           children: children
               .map((child) => Padding(
                   padding: const EdgeInsets.only(bottom: 16), child: child))
               .toList());
+    }
     return Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: children
@@ -720,9 +721,12 @@ int _comparePriority(TaskSummary a, TaskSummary b) {
 }
 
 String _taskReason(TaskSummary task) {
-  if (task.dueAt != null)
+  if (task.dueAt != null) {
     return 'Due ${task.dueAt!.month}/${task.dueAt!.day} · ${task.estimatedMinutes} min';
-  if (task.goalTitle != null) return 'Supports ${task.goalTitle}';
+  }
+  if (task.goalTitle != null) {
+    return 'Supports ${task.goalTitle}';
+  }
   return 'Priority ${task.priority}';
 }
 

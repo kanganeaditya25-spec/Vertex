@@ -82,7 +82,9 @@ class DashboardController extends AsyncNotifier<DashboardState> {
       final live = state.valueOrNull;
       if (live == null ||
           !live.snapshot.focus.isRunning ||
-          live.snapshot.focus.isPaused) return;
+          live.snapshot.focus.isPaused) {
+        return;
+      }
       final nextFocus = live.snapshot.focus.copyWith(
         elapsedSeconds: live.snapshot.focus.elapsedSeconds + 1,
         todaySeconds: live.snapshot.focus.todaySeconds + 1,
@@ -156,8 +158,9 @@ class DashboardController extends AsyncNotifier<DashboardState> {
 
   Future<void> _persist() async {
     final current = state.valueOrNull;
-    if (current != null && _repository != null)
+    if (current != null && _repository != null) {
       await _repository!.saveSnapshot(current.snapshot);
+    }
   }
 }
 
