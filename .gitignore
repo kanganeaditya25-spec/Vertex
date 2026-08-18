@@ -3,3 +3,15 @@ node_modules/
 uploads/
 data/
 *.db
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Flutter artifacts
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+build/
