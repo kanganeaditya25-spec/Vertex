@@ -1,6 +1,6 @@
 # Task 1 — Free, Open-Source, Offline-First Architecture Baseline
 
-**Status:** In progress
+**Status:** Complete — foundation staged
 **Source:** User-provided Task 1 specification
 **Project:** Productivity Boost Dashboard
 
@@ -50,7 +50,7 @@ The repository currently contains a functioning Express.js and vanilla JavaScrip
 | Frontend foundation contract | Flutter package and feature boundaries are defined without claiming an unavailable Flutter build. | Complete |
 | Local AI boundary | Provider interface and Ollama integration point are documented as an optional local adapter. | Complete |
 | Quality gates | Task 1 validation and evidence are recorded in this document and `PROJECT_STATUS.md`. | Complete |
-| Git history | Task 1 changes are committed and pushed to GitHub. | Pending |
+| Git history | Task 1 changes are committed and pushed to GitHub. | Complete |
 
 ## Explicit non-goals for Task 1
 
@@ -60,4 +60,4 @@ Task 1 does not yet migrate the complete web application, install large AI model
 
 The FastAPI foundation passed `python3 -m compileall -q backend` and `python3 -m pytest -q backend/tests` with three passing tests. The tested contract returns HTTP 200 for `/` and `/api/v1/health`, reports the service name and environment, and includes an ISO timestamp. The Flutter SDK is not installed in the current environment, so `flutter analyze` and `flutter test` remain pending and are explicitly not claimed as complete.
 
-The staged foundation is ready for review and commit. Full Flutter build verification, persistence repositories, authentication, and data migration remain later tasks.
+The staged foundation is committed and pushed for review. Full Flutter build verification, persistence repositories, authentication, and data migration remain later tasks.
