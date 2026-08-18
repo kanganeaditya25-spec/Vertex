@@ -137,3 +137,15 @@ Task 2 added the Flutter command-center foundation described in `docs/TASK_02_DA
 Flutter 3.47.0 and Dart 3.13.0 were installed at `/home/ubuntu/flutter/`. Dependency resolution completed after removing the unused `appflowy_editor` package and aligning `intl` with the Flutter localization SDK. `flutter analyze` reports no issues, `flutter test` passes both dashboard model tests, and `flutter build web --release` completes successfully. The missing web platform files were generated with `flutter create . --platforms web` and the compiled output was published into the Express app’s `public/` directory.
 
 The Flutter client now has an environment-overridable API base URL whose production default is `https://vertex-eta-bice.vercel.app/api`. Authenticated synchronization is optional and only activates when a JWT is stored by a future PIN/auth flow; without a token, the app remains a usable offline-first dashboard rather than making unauthenticated requests. The live Vercel root now serves the Flutter dashboard while the existing Express API continues to handle `/api/*` routes.
+
+## Module 3 — Smart Task Management Engine
+
+**Status:** Core foundation implemented and deployed in commit `8403eea`.
+
+The three Module 3 specification parts were consolidated into `docs/MODULE_03_SMART_TASK_ENGINE_SPEC.md`. The first production slice now includes a normalized SQLAlchemy task domain, configurable statuses and priorities, tags, checklists, task history, dependency and sync-queue tables, rich task fields, offline-safe CRUD contracts, archive/restore, completion, recurrence generation, duplication, bulk actions, search, filters, statistics, and soft deletion.
+
+The FastAPI backend includes `/api/v1/tasks` endpoints and a deterministic local intelligence service that calculates priority, urgency, risk, confidence, and an explanation for every recommendation without requiring Ollama or any cloud AI. The Flutter client includes a `/tasks` route, dashboard navigation, persistent search, status filters, summary metrics, compact task cards, task details, quick add, selection mode, bulk completion, and offline SharedPreferences persistence with a mutation queue.
+
+Module 3 verification passed with five FastAPI tests, three Flutter tests, clean Flutter analysis, the existing structural verifier, and a successful Flutter web release build. The live `/tasks` route returns HTTP 200 with Flutter shell markers, and the existing Express `/api/auth/status` endpoint remains healthy. Vercel deployment `dpl_DNCrRtS1MYtvBKmcconNvAQhXCw8` is `READY` and aliases the public production domain.
+
+This is the first production slice of the full Module 3 specification. Kanban, calendar, timeline, table, attachment transport, comments, dependency editing, semantic search, ChromaDB memory, Whisper.cpp, Piper, and authenticated remote synchronization remain future increments. The new FastAPI task API is tested in the repository; the current public Vercel project continues to serve the Flutter static shell through Express while the Flutter PIN login flow is not yet present.
