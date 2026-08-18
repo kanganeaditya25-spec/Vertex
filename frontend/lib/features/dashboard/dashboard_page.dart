@@ -75,6 +75,11 @@ class _DashboardView extends ConsumerWidget {
         title: const Text('FocusFlow AI'),
         actions: [
           IconButton(
+            tooltip: 'Open Workspaces & Projects',
+            onPressed: () => context.push('/organization'),
+            icon: const Icon(Icons.account_tree_rounded),
+          ),
+          IconButton(
             tooltip: 'Open AI Executive Assistant',
             onPressed: () => context.push('/assistant'),
             icon: const Icon(Icons.auto_awesome_rounded),
@@ -393,6 +398,10 @@ class _QuickActions extends StatelessWidget {
               avatar: const Icon(Icons.auto_awesome_rounded, size: 18),
               label: const Text('Assistant'),
               onPressed: () => context.push('/assistant')),
+          ActionChip(
+              avatar: const Icon(Icons.account_tree_rounded, size: 18),
+              label: const Text('Projects'),
+              onPressed: () => context.push('/organization')),
           const ActionChip(
               avatar: Icon(Icons.note_add_outlined, size: 18),
               label: Text('New note')),

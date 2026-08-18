@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from app.api.assistant import router as assistant_router
 from app.api.calendar import router as calendar_router
 from app.api.notes import router as notes_router
+from app.api.organization import router as organization_router
 from app.api.health import router as health_router
 from app.api.tasks import router as tasks_router
 from app.core.config import settings
@@ -11,6 +12,7 @@ from app.models import task as _task_models
 from app.calendar import models as _calendar_models
 from app.notes import models as _note_models
 from app.assistant import models as _assistant_models
+from app.organization import models as _organization_models
 
 
 app = FastAPI(
@@ -24,6 +26,7 @@ app.include_router(tasks_router, prefix="/api/v1")
 app.include_router(calendar_router, prefix="/api/v1")
 app.include_router(notes_router, prefix="/api/v1")
 app.include_router(assistant_router, prefix="/api/v1")
+app.include_router(organization_router, prefix="/api/v1")
 Base.metadata.create_all(bind=engine)
 
 
@@ -42,4 +45,5 @@ def root() -> dict[str, str]:
         "calendar": "/api/v1/calendar",
         "notes": "/api/v1/notes",
         "assistant": "/api/v1/assistant",
+        "organization": "/api/v1/organization",
     }

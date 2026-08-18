@@ -186,3 +186,14 @@ The Flutter client includes the `/assistant` route, Dashboard navigation, respon
 Module 6 verification passed with eleven FastAPI tests, seven Flutter tests, clean Flutter analysis, and a successful production Flutter web build. The generated release replaced `public/`, and the live `/assistant` route returns HTTP 200 with Flutter shell markers. The live JavaScript bundle contains the assistant UI strings. Vercel deployment `dpl_HokwYY33QWiN8bR1VMJwmoCVTuYp` is `READY` and matches commit `cf5941519a5702c0700a2d6adf1cf5f27adb0814`.
 
 The FastAPI `/api/v1/assistant` service is tested in the repository but is not wired into the current Vercel Express runtime. The production Flutter assistant therefore operates offline-first through its deterministic local repository while the legacy Express `/api/*` behavior remains intact. Ollama, authenticated remote sync, ChromaDB semantic memory, Whisper.cpp, Piper, approval workflows, and richer audited actions remain future increments rather than placeholders in this release. The full acceptance record is at `docs/TASK_06_AI_ASSISTANT_EXECUTIVE_AGENT.md`.
+
+
+## Module 7 — Workspaces, Projects, Goals, and Milestones
+
+**Status:** Core organization slice implemented and published in the current working release.
+
+Module 7 establishes the central FocusFlow hierarchy: workspace → project → milestone → task. The FastAPI backend includes workspace, project, goal, milestone, project-template, and sync-queue models; CRUD and archive operations; duplication; template instantiation; project dashboards; statistics; local search; milestone-driven progress; deadline-risk analysis; and explainable project recommendations.
+
+The Flutter client includes the `/organization` route, Dashboard navigation, a system-map sidebar, local workspace/project/goal creation, milestone progress controls, connected goal context, and Dashboard, List, Kanban, Timeline, Calendar, Table, and Gallery project views. SharedPreferences persistence and a local mutation queue preserve the offline-first requirement. The UI uses flat Material 3 surfaces, solid color accents, and restrained status colors without gradients or decorative effects.
+
+Module 7 verification passed with thirteen FastAPI tests, seven Flutter tests, clean Flutter analysis, and a successful production web build. The compiled shell was copied into `public/`, and all existing routes and the Express `/api/*` behavior were preserved. The full acceptance record is at `docs/TASK_07_WORKSPACES_PROJECTS_GOALS.md`.
