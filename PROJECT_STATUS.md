@@ -161,3 +161,15 @@ The Flutter client includes a `/calendar` route, direct Dashboard navigation, ag
 Module 4 verification passed with seven FastAPI tests, five Flutter tests, clean Flutter analysis, and a successful Flutter web release build. The live `/calendar` route returns HTTP 200 with Flutter shell markers, `/tasks` remains HTTP 200, and the existing Express `/api/auth/status` endpoint remains healthy. Vercel deployment `dpl_Eqp21JmzSornXiHYHc73iWyYVQmn` is `READY` and aliases the public production domain.
 
 This is the first production slice of the complete Module 4 specification. Full drag/resize scheduling, week/timeline/split/planner views, rich recurrence editing, attachment/reminder delivery, external calendar integrations, ChromaDB memory, Whisper.cpp/Piper, recommendation learning, authenticated remote synchronization, and platform home-screen widgets remain future increments. The new FastAPI `/api/v1/calendar` service is tested in the repository; the current public Vercel project continues to serve the Flutter static shell through Express while the Flutter authentication and remote-sync flow are not yet present.
+
+## Module 5 — AI Notes & Second Brain
+
+**Status:** Core production slice implemented and deployed in commit `a8965ea`.
+
+The three Module 5 specifications were consolidated into `docs/MODULE_05_AI_NOTES_SECOND_BRAIN_SPEC.md`. The first production slice includes normalized notes, typed blocks, folders, tags, bidirectional note links, immutable versions and history, a mutation queue, validated note CRUD, local search, favorites, recent notes, statistics, archive/trash/restore behavior, markdown/plain-text projections, reading-time metadata, and a deterministic knowledge score.
+
+The Flutter client includes a `/notes` route, direct Dashboard navigation, a responsive note list/editor workspace, search, filters, title and block editing, structured block insertion, checklist completion, block actions, pin/favorite/archive/trash controls, link counts, live note statistics, autosave status, and SharedPreferences-backed offline persistence.
+
+Module 5 verification passed with nine FastAPI tests, seven Flutter tests, clean Flutter analysis, and a successful Flutter web release build. The live `/notes` route returns HTTP 200 with Flutter shell markers; `/tasks` and `/calendar` remain HTTP 200; and the existing Express `/api/auth/status` endpoint remains healthy. Vercel deployment `dpl_5Xf2nuHeJZhZXrCWX7JxWWs2PikC` is `READY` and aliases the public production domain.
+
+This is the first production slice of the complete Module 5 specification. PDF annotation, voice capture and Whisper.cpp, whiteboard/drawing, Mermaid/LaTeX, asset-library attachments, semantic embeddings, knowledge-graph visualization, advanced split view, version comparison UI, drag-and-drop block ordering, external synchronization, and local AI assistant actions remain future increments connected through the stable note and block boundaries. The repository is clean and the public Flutter shell continues to coexist with the Express API.
