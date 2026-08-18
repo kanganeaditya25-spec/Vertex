@@ -28,13 +28,15 @@ class TaskRepository {
 
   Future<List<Map<String, dynamic>>> loadQueue() async {
     final encoded = _preferences.getString(_queueKey);
-    if (encoded == null || encoded.isEmpty) return const [];
+    if (encoded == null || encoded.isEmpty) {
+      return <Map<String, dynamic>>[];
+    }
     try {
       return (jsonDecode(encoded) as List<dynamic>)
           .whereType<Map<String, dynamic>>()
           .toList();
     } on Object {
-      return const [];
+      return <Map<String, dynamic>>[];
     }
   }
 

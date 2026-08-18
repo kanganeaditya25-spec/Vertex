@@ -80,6 +80,11 @@ class _DashboardView extends ConsumerWidget {
             icon: const Icon(Icons.insights_rounded),
           ),
           IconButton(
+            tooltip: 'Open Automation Engine',
+            onPressed: () => context.push('/automation'),
+            icon: const Icon(Icons.account_tree_outlined),
+          ),
+          IconButton(
             tooltip: 'Open Workspaces & Projects',
             onPressed: () => context.push('/organization'),
             icon: const Icon(Icons.account_tree_rounded),
@@ -411,6 +416,10 @@ class _QuickActions extends StatelessWidget {
               avatar: const Icon(Icons.insights_rounded, size: 18),
               label: const Text('Analytics'),
               onPressed: () => context.push('/analytics')),
+          ActionChip(
+              avatar: const Icon(Icons.account_tree_outlined, size: 18),
+              label: const Text('Automation'),
+              onPressed: () => context.push('/automation')),
           const ActionChip(
               avatar: Icon(Icons.note_add_outlined, size: 18),
               label: Text('New note')),
