@@ -4,7 +4,7 @@
 **Repository:** [kanganeaditya25-spec/Vertex](https://github.com/kanganeaditya25-spec/Vertex)
 **Public deployment:** [https://vertex-eta-bice.vercel.app/](https://vertex-eta-bice.vercel.app/)
 **Current branch:** `main`
-**Latest deployed commit:** `8cad653` — `Deploy Task 2 Flutter dashboard to web`
+**Latest deployed commit:** `df2dbcf` — `Clean up Task 2 Flutter web build`
 
 ## Executive summary
 
@@ -23,7 +23,7 @@ The application is currently usable as a Vercel demo. Its remaining architectura
 | Personal Library | Verified | Public Library page loads with filters, search, and Add Item controls. |
 | Reports & Goals | Verified | Daily, Monthly, and Goals tabs load; no-Gemini-key fallback guidance renders correctly. |
 | Settings | Verified | Reminder controls, Gemini key field, PIN controls, lock, and export are available. Notifications are off by default. |
-| Vercel deployment | Complete | Production deployment from commit `8cad653` is `READY`; the Flutter shell and compiled bundle return HTTP 200, and `/api/auth/status` remains healthy. |
+| Vercel deployment | Complete | Production deployment from commit `df2dbcf` is ready after the final web rebuild; the Flutter shell and compiled bundle return HTTP 200, and `/api/auth/status` remains healthy. |
 | Project record | Complete | This document and `deployment-status.md` record the diagnosis, patches, verification, and limitations. |
 
 ## Original failure and confirmed cause
@@ -130,7 +130,7 @@ Task 1 is now complete as a staged architecture foundation. The implementation w
 
 ## Task 2 — AI Dashboard and Command Center
 
-**Status:** Complete for the Task 2 command-center scope; deployed commit `8cad653`.
+**Status:** Complete for the Task 2 command-center scope; final web release commit `df2dbcf`.
 
 Task 2 added the Flutter command-center foundation described in `docs/TASK_02_DASHBOARD_COMMAND_CENTER.md`. The dashboard has smart greeting, today overview, priority ordering, focus controls with local persistence, calendar preview, recent notes, project status, habits, analytics chart, local AI readiness, quick actions, widget visibility customization, responsive one/two-column layout, Material 3 theming, Riverpod state, and SharedPreferences-backed offline snapshots.
 

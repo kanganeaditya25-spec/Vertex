@@ -1,6 +1,6 @@
 # Task 2 — AI Dashboard and Command Center
 
-**Status:** Complete for Task 2 command-center scope — Flutter web deployed in commit `8cad653`
+**Status:** Complete for Task 2 command-center scope — final Flutter web release commit `df2dbcf`
 **Source:** User-provided Task 2 specification
 **Application direction:** FocusFlow AI / Productivity Boost Dashboard
 
@@ -53,7 +53,8 @@ The dashboard starts from an empty local snapshot when no saved data exists and 
 
 The deterministic Task 2 foundation verifier passed and confirmed the Flutter shell, required Riverpod provider names, repository persistence keys, local Ollama endpoints, dashboard sections, and absence of mock/placeholder markers in production Dart code. Flutter 3.47.0 and Dart 3.13.0 were then installed. `flutter analyze` reports no issues, `flutter test` passes both dashboard model tests, and `flutter build web --release` completes successfully. The Flutter web platform files were generated, and the resulting static assets were published through the existing Express `public/` directory.
 
-The production deployment from commit `8cad653` is `READY` at Vercel. The live root returns the Flutter HTML shell and `main.dart.js` returns HTTP 200. The existing Express `/api/auth/status` endpoint also returns HTTP 200, confirming that the API runtime remains available alongside the Flutter client.
+The production deployment from the final web release commit `df2dbcf` is `READY` at Vercel.
+The live root returns the Flutter HTML shell and `main.dart.js` returns HTTP 200. The existing Express `/api/auth/status` endpoint also returns HTTP 200, confirming that the API runtime remains available alongside the Flutter client.
 
 ## Explicit scope boundary
 
