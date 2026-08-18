@@ -60,15 +60,18 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`\n🚀 Productivity Dashboard running at http://localhost:${PORT}\n`);
+// Vercel imports this file as a serverless function. Local development keeps
+// the HTTP listener and background jobs; Vercel handles the request lifecycle.
+if (process.env.VERCEL !== '1') {
+  app.listen(PORT, () => {
+    console.log(`\n🚀 Productivity Dashboard running at http://localhost:${PORT}\n`);
 
-  // Initialize push service
-  const { initVapidKeys } = require('./services/push');
-  initVapidKeys();
+    const { initVapidKeys } = require('./services/push');
+    initVapidKeys();
 
-  // Start scheduler
-  const { startScheduler } = require('./services/scheduler');
-  startScheduler();
-});
+    const { startScheduler } = require('./services/scheduler');
+    startScheduler();
+  });
+}
+
+module.exports = app;

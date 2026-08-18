@@ -8,7 +8,10 @@ const { db } = require('../db/database');
 const router = express.Router();
 
 // Configure multer for file uploads
-const uploadsDir = path.join(__dirname, '..', 'uploads');
+// Vercel's deployment bundle is read-only. Attachments on Vercel are temporary.
+const uploadsDir = process.env.VERCEL === '1'
+  ? path.join('/tmp', 'productivity-dashboard', 'uploads')
+  : path.join(__dirname, '..', 'uploads');
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }

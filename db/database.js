@@ -2,7 +2,10 @@ const { DatabaseSync } = require('node:sqlite');
 const path = require('path');
 const fs = require('fs');
 
-const dataDir = path.join(__dirname, '..', 'data');
+// Vercel's deployment bundle is read-only. `/tmp` is writable there, but ephemeral.
+const dataDir = process.env.VERCEL === '1'
+  ? path.join('/tmp', 'productivity-dashboard', 'data')
+  : path.join(__dirname, '..', 'data');
 if (!fs.existsSync(dataDir)) {
   fs.mkdirSync(dataDir, { recursive: true });
 }
