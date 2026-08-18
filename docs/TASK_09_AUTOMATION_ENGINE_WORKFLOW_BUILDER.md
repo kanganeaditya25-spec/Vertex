@@ -32,3 +32,7 @@ The first release intentionally does not invent duplicate Asset Library, Reminde
 ## Documentation
 
 The architecture and safety design are recorded in `docs/MODULE_09_AUTOMATION_ARCHITECTURE.md`. The final release preserves all prior module routes and the existing Express API surface.
+
+## Production release evidence
+
+The release was committed to GitHub as `129574f` and pushed to `main`. Vercel deployment `dpl_ZRGp34bFf5faXuHePeanSrGizxr1` reached **READY** on the production alias. The live `/automation`, `/organization`, `/analytics`, `/tasks`, `/calendar`, `/notes`, and `/assistant` routes each returned **HTTP 200**. The existing `/api/health` guard continued to return the expected unauthenticated **HTTP 401** response, confirming that the legacy Express API protection was not removed.
