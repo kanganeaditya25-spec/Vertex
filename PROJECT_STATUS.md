@@ -127,3 +127,11 @@ The existing Express web prototype remains intact and continues to serve as the 
 Task 1 also now includes a local Ollama provider adapter with a graceful offline-unavailable error and a deterministic fallback test. The backend foundation test suite passes three tests. Flutter analysis remains pending because the sandbox does not contain the Flutter SDK; this limitation is explicitly recorded in the Task 1 acceptance document.
 
 Task 1 is now complete as a staged architecture foundation. The implementation was pushed in commits `8c91343` (`Establish offline first app foundation`) and `2ed2ccd` (`Ignore generated development artifacts`). Three backend tests pass, including the FastAPI health contract and Ollama-unavailable fallback. Flutter build verification remains pending because Flutter/Dart are not installed in the current sandbox; this is recorded explicitly and is not treated as a failed or falsely completed check.
+
+## Task 2 — AI Dashboard and Command Center
+
+**Status:** Foundation implemented; commit pending.
+
+Task 2 added the Flutter command-center foundation described in `docs/TASK_02_DASHBOARD_COMMAND_CENTER.md`. The staged dashboard now has smart greeting, today overview, priority ordering, focus controls with local persistence, calendar preview, recent notes, project status, habits, analytics chart, local AI readiness, quick actions, widget visibility customization, responsive one/two-column layout, Material 3 theming, Riverpod state, and SharedPreferences-backed offline snapshots.
+
+The deterministic Task 2 structure verifier passed, and the existing FastAPI suite passed three tests. Flutter analyzer and widget/integration tests remain pending because Flutter/Dart are not installed in the current sandbox; this limitation is recorded explicitly. The public Vercel site remains the legacy web prototype until the Flutter client has a supported build and a separate deployment path.
