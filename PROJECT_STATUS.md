@@ -115,3 +115,13 @@ A browser check showed the deployed task modal still rendering an older version 
 The project now follows `docs/ENHANCEMENT_WORKFLOW.md`, based on the attached free, open-source, offline-first architecture standard. Future enhancements must pass architecture compliance, domain/data design, backend and client implementation, offline behavior, local-AI, security, testing, documentation, and deployment gates.
 
 The target architecture is Flutter plus Riverpod on the client, FastAPI plus SQLAlchemy/Alembic on the backend, SQLite for development, PostgreSQL for durable production, Ollama for local AI, ChromaDB for optional semantic memory, and local notifications and file storage. The existing Express web application remains the working prototype while migration is performed incrementally rather than through a disruptive rewrite.
+
+## Task 1 — architecture foundation
+
+**Status:** Foundation implemented; commit pending.
+
+Task 1 established the first staged foundation for the user-provided free, open-source, offline-first architecture. The repository now contains a FastAPI backend boundary with a versioned `/api/v1/health` contract, Python package metadata, a SQLAlchemy/Alembic-ready session boundary, a Flutter package manifest, a Material 3 + Riverpod + Go Router client shell, backend and frontend runbooks, and a Task 1 acceptance record at `docs/TASK_01_ARCHITECTURE_BASELINE.md`.
+
+The existing Express web prototype remains intact and continues to serve as the behavior reference. Flutter and Dart are not installed in the current environment, so Flutter build verification is explicitly pending rather than being claimed. The FastAPI foundation passed compilation and two health endpoint tests. Later tasks will add repositories, authentication, migrations, local Ollama providers, offline storage, and the remaining cross-platform features.
+
+Task 1 also now includes a local Ollama provider adapter with a graceful offline-unavailable error and a deterministic fallback test. The backend foundation test suite passes three tests. Flutter analysis remains pending because the sandbox does not contain the Flutter SDK; this limitation is explicitly recorded in the Task 1 acceptance document.
