@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 
+from app.api.assistant import router as assistant_router
 from app.api.calendar import router as calendar_router
 from app.api.notes import router as notes_router
 from app.api.health import router as health_router
@@ -9,6 +10,7 @@ from app.db.session import Base, engine
 from app.models import task as _task_models
 from app.calendar import models as _calendar_models
 from app.notes import models as _note_models
+from app.assistant import models as _assistant_models
 
 
 app = FastAPI(
@@ -21,6 +23,7 @@ app.include_router(health_router, prefix="/api/v1")
 app.include_router(tasks_router, prefix="/api/v1")
 app.include_router(calendar_router, prefix="/api/v1")
 app.include_router(notes_router, prefix="/api/v1")
+app.include_router(assistant_router, prefix="/api/v1")
 Base.metadata.create_all(bind=engine)
 
 
@@ -38,4 +41,5 @@ def root() -> dict[str, str]:
         "tasks": "/api/v1/tasks",
         "calendar": "/api/v1/calendar",
         "notes": "/api/v1/notes",
+        "assistant": "/api/v1/assistant",
     }
