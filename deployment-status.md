@@ -51,3 +51,7 @@ The backend task-goal smoke test passed: a linked task moved its goal from 0% to
 The local server serves the updated `tasks.js` with `Related Goal` and `goal_id`, but the browser’s fetched script remained an older cached copy. The discrepancy is caused by the existing service-worker/browser cache; it must be cleared or bypassed before judging the frontend change.
 
 The cache-busted local UI now shows a Related Goal selector in the New Task modal, populated with the existing goal and helper text explaining automatic progress. The Goals tab shows `Link tasks to track this goal automatically` for goals without linked tasks, and the Dashboard shows the linked-task summary area while preserving existing cards and metrics.
+
+## Public task-goal deployment
+
+The task-goal commit `e45949c` was pushed to `main` and the connected Vercel URL returned HTTP 200 after redeployment. The public `tasks.js` bundle contains the Related Goal selector, `goal_id` payload, and automatic-progress helper text. Because the Vercel SQLite runtime is ephemeral, the new deployment currently shows the PIN setup screen again and does not retain the previous demo PIN/data.
