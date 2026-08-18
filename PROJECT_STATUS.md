@@ -197,3 +197,12 @@ Module 7 establishes the central FocusFlow hierarchy: workspace → project → 
 The Flutter client includes the `/organization` route, Dashboard navigation, a system-map sidebar, local workspace/project/goal creation, milestone progress controls, connected goal context, and Dashboard, List, Kanban, Timeline, Calendar, Table, and Gallery project views. SharedPreferences persistence and a local mutation queue preserve the offline-first requirement. The UI uses flat Material 3 surfaces, solid color accents, and restrained status colors without gradients or decorative effects.
 
 Module 7 verification passed with thirteen FastAPI tests, seven Flutter tests, clean Flutter analysis, and a successful production web build. The compiled shell was copied into `public/`, and all existing routes and the Express `/api/*` behavior were preserved. The full acceptance record is at `docs/TASK_07_WORKSPACES_PROJECTS_GOALS.md`.
+
+
+## Module 8 — Analytics and Productivity Insights
+
+**Status:** Implemented and published in the current working release.
+
+Module 8 transforms local Tasks, Calendar, Notes, Workspaces, Projects, Goals, and Focus Sessions into explainable productivity analytics. The FastAPI layer includes focus-session persistence, dashboard snapshots, custom widget layouts, period filters, productivity and focus scores, task and focus breakdowns, daily reports, local recommendations, and CSV export. The Flutter `/analytics` route includes Day, Week, Month, and Year filters; solid-color metric cards; score explanation; focus trend chart; breakdown bars; summaries; local insights; and offline focus-session capture.
+
+The user-requested visual treatment is preserved: flat Material 3 surfaces, restrained solid indigo, teal, amber, rose, blue, and violet accents, no gradients, no decorative effects, and no unrelated module changes. Module 8 verification passed with fifteen FastAPI tests, nine Flutter tests, clean Flutter analysis, a successful release build, and a `git diff --check` pass. The full record is at `docs/TASK_08_ANALYTICS_PRODUCTIVITY_INSIGHTS.md`.
