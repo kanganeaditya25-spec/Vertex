@@ -1,6 +1,7 @@
 import 'package:go_router/go_router.dart';
 
 import '../features/calendar/calendar_page.dart';
+import '../features/notes/notes_page.dart';
 import '../features/dashboard/dashboard_page.dart';
 import '../features/tasks/task_home_page.dart';
 
@@ -17,6 +18,10 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/calendar',
       builder: (context, state) => const CalendarPage(),
+    ),
+    GoRoute(
+      path: '/notes',
+      builder: (context, state) => const NotesPage(),
     ),
   ],
 );
