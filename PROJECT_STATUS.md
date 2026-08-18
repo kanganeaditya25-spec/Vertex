@@ -109,3 +109,9 @@ The feature is committed and pushed in commit `e45949c`, and the public Vercel b
 ## Frontend cache reliability fix
 
 A browser check showed the deployed task modal still rendering an older version without Related Goal, even though the public bundle contained the new feature. The cause was the previous cache-first service worker returning stale JavaScript. Frontend assets now use version query parameters, service-worker registration is versioned, the cache name is bumped to `productivity-dashboard-v2`, and online fetches use a network-first strategy with offline fallback. This ensures users receive the current task-goal UI after the deployment refresh.
+
+## Enhancement workflow adopted
+
+The project now follows `docs/ENHANCEMENT_WORKFLOW.md`, based on the attached free, open-source, offline-first architecture standard. Future enhancements must pass architecture compliance, domain/data design, backend and client implementation, offline behavior, local-AI, security, testing, documentation, and deployment gates.
+
+The target architecture is Flutter plus Riverpod on the client, FastAPI plus SQLAlchemy/Alembic on the backend, SQLite for development, PostgreSQL for durable production, Ollama for local AI, ChromaDB for optional semantic memory, and local notifications and file storage. The existing Express web application remains the working prototype while migration is performed incrementally rather than through a disruptive rewrite.
