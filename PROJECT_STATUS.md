@@ -149,3 +149,15 @@ The FastAPI backend includes `/api/v1/tasks` endpoints and a deterministic local
 Module 3 verification passed with five FastAPI tests, three Flutter tests, clean Flutter analysis, the existing structural verifier, and a successful Flutter web release build. The live `/tasks` route returns HTTP 200 with Flutter shell markers, and the existing Express `/api/auth/status` endpoint remains healthy. Vercel deployment `dpl_DNCrRtS1MYtvBKmcconNvAQhXCw8` is `READY` and aliases the public production domain.
 
 This is the first production slice of the full Module 3 specification. Kanban, calendar, timeline, table, attachment transport, comments, dependency editing, semantic search, ChromaDB memory, Whisper.cpp, Piper, and authenticated remote synchronization remain future increments. The new FastAPI task API is tested in the repository; the current public Vercel project continues to serve the Flutter static shell through Express while the Flutter PIN login flow is not yet present.
+
+## Module 4 — AI Calendar & Time Intelligence
+
+**Status:** Core foundation implemented and deployed in commit `b031747`.
+
+The four Module 4 specification parts were consolidated into `docs/MODULE_04_AI_CALENDAR_TIME_INTELLIGENCE_SPEC.md`. The first production slice now includes normalized calendar event, recurrence, preference, reminder, focus-block, immutable history, and sync-queue models; validated event CRUD; day/week/month/agenda queries; search and filtering; archive/restore; duplication; statistics; conflict detection; and deterministic explainable schedule recommendations.
+
+The Flutter client includes a `/calendar` route, direct Dashboard navigation, agenda/day/month views, selected-date navigation, search, preference persistence, reduced-motion and high-contrast controls, conflict banners, event details, quick add, completion, archive, duplicate, delete, and SharedPreferences-backed offline persistence with a local queue.
+
+Module 4 verification passed with seven FastAPI tests, five Flutter tests, clean Flutter analysis, and a successful Flutter web release build. The live `/calendar` route returns HTTP 200 with Flutter shell markers, `/tasks` remains HTTP 200, and the existing Express `/api/auth/status` endpoint remains healthy. Vercel deployment `dpl_Eqp21JmzSornXiHYHc73iWyYVQmn` is `READY` and aliases the public production domain.
+
+This is the first production slice of the complete Module 4 specification. Full drag/resize scheduling, week/timeline/split/planner views, rich recurrence editing, attachment/reminder delivery, external calendar integrations, ChromaDB memory, Whisper.cpp/Piper, recommendation learning, authenticated remote synchronization, and platform home-screen widgets remain future increments. The new FastAPI `/api/v1/calendar` service is tested in the repository; the current public Vercel project continues to serve the Flutter static shell through Express while the Flutter authentication and remote-sync flow are not yet present.
