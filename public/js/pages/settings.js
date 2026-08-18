@@ -121,6 +121,17 @@ const SettingsPage = {
         showToast('Failed to enable notifications: ' + error.message, 'error');
       }
     } else {
+      try {
+        const registration = await navigator.serviceWorker?.ready;
+        const subscription = await registration?.pushManager?.getSubscription();
+        if (subscription) {
+          await API.unsubscribePush(subscription);
+          await subscription.unsubscribe();
+        }
+      } catch (error) {
+        console.warn('[Notifications] Could not remove browser subscription:', error.message);
+      }
+
       toggle.classList.remove('active');
       await API.updateSettings({ notificationsEnabled: false });
       showToast('Notifications disabled', 'info');
