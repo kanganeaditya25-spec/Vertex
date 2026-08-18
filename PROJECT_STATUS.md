@@ -1,0 +1,89 @@
+# Productivity Boost Dashboard — Project Status
+
+**Last updated:** 18 August 2026
+**Repository:** [kanganeaditya25-spec/Vertex](https://github.com/kanganeaditya25-spec/Vertex)
+**Public deployment:** [https://vertex-eta-bice.vercel.app/](https://vertex-eta-bice.vercel.app/)
+**Current branch:** `main`
+**Latest deployed fix commit:** `e23e980` — `Fix Vercel serverless filesystem crash`
+
+## Executive summary
+
+The Productivity Boost Dashboard is now deployed on Vercel and the original serverless crash has been fixed. The public URL returns the dashboard PIN setup screen instead of Vercel’s `FUNCTION_INVOCATION_FAILED` page. The authenticated dashboard, Tasks, Personal Library, Reports & Goals, and Settings sections have been verified in the public deployment.
+
+The application is currently usable as a Vercel demo. Its remaining architectural limitation is data durability: the app still uses SQLite and local file attachments, while Vercel function storage is ephemeral. Data written during one function instance may not be available after a restart, redeploy, or instance change. A durable production release still requires an external database and external file storage.
+
+## What has been completed
+
+| Area | Status | Details |
+|---|---|---|
+| Express backend | Complete | Existing API routes for authentication, tasks, library, goals, reports, notifications, and settings are deployed. |
+| Vanilla PWA frontend | Complete | Dashboard shell, navigation, manifest, service worker, responsive layout, and page modules load publicly. |
+| PIN security | Complete for current demo instance | Temporary test PIN `123456` was created with user confirmation and the public dashboard unlocked successfully. |
+| Task management | Verified | Public Tasks page loads with filters, search, and task creation controls. |
+| Personal Library | Verified | Public Library page loads with filters, search, and Add Item controls. |
+| Reports & Goals | Verified | Daily, Monthly, and Goals tabs load; no-Gemini-key fallback guidance renders correctly. |
+| Settings | Verified | Reminder controls, Gemini key field, PIN controls, lock, and export are available. Notifications are off by default. |
+| Vercel deployment | Complete | Public root, manifest, service worker, and auth-status endpoint all return HTTP 200. |
+| Project record | Complete | This document and `deployment-status.md` record the diagnosis, patches, verification, and limitations. |
+
+## Original failure and confirmed cause
+
+The public site originally returned:
+
+> `500: INTERNAL_SERVER_ERROR` — `FUNCTION_INVOCATION_FAILED`
+
+The owner-provided Vercel logs showed the exact initialization error:
+
+> `Error: ENOENT: no such file or directory, mkdir '/var/task/data'`
+
+The database bootstrap attempted to create a SQLite data directory inside Vercel’s deployment bundle. That location is not writable during serverless execution. The application also started local-only background services during server startup, which are not appropriate for the Vercel function lifecycle.
+
+## Fixes applied
+
+The database bootstrap now uses the local `data/productivity.db` path during normal development and `/tmp/productivity-dashboard/data` when `VERCEL=1`. Task attachments use the equivalent `/tmp/productivity-dashboard/uploads` path on Vercel. These temporary paths prevent the crash but do not provide durable persistence.
+
+The Express entrypoint now exports the app for Vercel. The local HTTP listener, VAPID initialization, and cron scheduler only start outside Vercel. The package configuration pins Node.js to `22.x`, which is required by the current built-in `node:sqlite` implementation.
+
+A Vercel-mode bootstrap test was added at `scripts/vercel-bootstrap-test.js`. It imports the server with `VERCEL=1`, serves the PWA shell, and passed with HTTP 200 before redeployment.
+
+## Verification record
+
+The following public checks passed after commit `e23e980` was deployed:
+
+| Check | Result |
+|---|---|
+| Public root URL | HTTP 200; dashboard PIN setup screen rendered. |
+| PIN setup | Temporary PIN was created after user confirmation; redirect to `#dashboard` succeeded. |
+| Dashboard | Authenticated dashboard rendered with zero-data metrics and navigation. |
+| Tasks | Authenticated Tasks page rendered with filters, search, and New Task controls. |
+| Personal Library | Authenticated Library page rendered with filters, search, and Add Item controls. |
+| Reports & Goals | Daily, Monthly, and Goals tabs rendered with no-Gemini fallback guidance. |
+| Settings | Settings rendered; notification toggle was inactive by default; reminder selectors showed 08:00 and 20:00. |
+| Static PWA assets | `/manifest.json` and `/sw.js` returned HTTP 200. |
+| Public auth status | `/api/auth/status` returned HTTP 200 with `{"isSetup":true}`. |
+
+## Current limitations
+
+Vercel’s serverless filesystem is ephemeral. The `/tmp` SQLite database and `/tmp` attachment directory are writable, but they may be cleared when the function restarts or when requests are served by another instance. This means the current deployment should be treated as a demo or single-instance experiment, not as a durable multi-user production service.
+
+The background reminder scheduler is disabled in Vercel mode because a cron process cannot reliably remain alive inside a request-scoped serverless function. Push notifications also require stable VAPID configuration and durable subscription storage before they can be considered production-ready.
+
+The Gemini API key is intentionally not configured in the deployment. A user can enter a key through Settings, but with the current ephemeral SQLite storage that configuration is not durable.
+
+## Recommended next phase
+
+For a durable release, migrate the SQLite tables to a hosted database compatible with Vercel, such as a managed Postgres or hosted SQLite provider, and move attachment storage to object storage. Store `JWT_SECRET`, Gemini credentials, VAPID keys, and database credentials as Vercel environment variables. Replace the local cron scheduler with a supported scheduled invocation or external job runner, then repeat the authenticated end-to-end tests.
+
+## Commit history relevant to this work
+
+| Commit | Description |
+|---|---|
+| `49a341e` | Initial full-stack dashboard implementation. |
+| `58d58a8` | Notification settings, scheduler behavior, validation, and API smoke tests. |
+| `e23e980` | Vercel serverless filesystem crash fix, Node runtime pin, deployment record, and bootstrap test. |
+
+## References
+
+[1]: https://vercel.com/docs/frameworks/backend/express "Express on Vercel — Vercel Documentation"
+[2]: https://vercel.com/kb/guide/is-sqlite-supported-in-vercel "Is SQLite supported in Vercel? — Vercel Knowledge Base"
+[3]: https://render.com/docs/free "Deploy for Free — Render Documentation"

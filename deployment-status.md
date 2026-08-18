@@ -27,3 +27,19 @@ A simulated Vercel-mode bootstrap passed: the exported Express app initialized a
 ## Persistence limitation
 
 The `/tmp` path is writable but ephemeral. This patch fixes the crash and makes the deployment runnable, but Vercel restarts or separate function instances may reset the SQLite database and uploaded files. Durable multi-instance use still requires migrating the database and file storage to external services.
+
+## Redeployment result
+
+Commit `e23e980` was pushed to `main`, which triggered the connected Vercel deployment. The public URL now returns HTTP 200 and loads the Productivity Dashboard PIN setup screen at `https://vertex-eta-bice.vercel.app/#login`. The previous `FUNCTION_INVOCATION_FAILED` crash is resolved.
+
+Authenticated flows remain to be checked on the public instance. Creating a test PIN changes the deployed instance state, so confirmation is required before performing that write operation.
+
+## Public authenticated-flow test
+
+With user confirmation, a temporary test PIN `123456` was entered and submitted on the public Vercel login screen. The button entered a loading state; the result still needs to be checked.
+
+The approved PIN setup completed successfully and redirected to `#dashboard`. The public dashboard loaded with authenticated navigation and zero-data metrics. The public Tasks page also loaded successfully, showing status filters, search, and New Task controls with an empty task state.
+
+The public Personal Library page loaded with search, category filters, and Add Item. Reports & Goals loaded with Daily, Monthly, and Goals tabs, zero-data metrics, and the expected no-Gemini-key guidance. Both authenticated routes are functioning on Vercel.
+
+The public Settings page loaded with reminder selectors, Gemini API key configuration, PIN controls, lock, and export. DOM verification confirmed the push notification toggle is inactive by default, with morning and evening reminders at 08:00 and 20:00.
