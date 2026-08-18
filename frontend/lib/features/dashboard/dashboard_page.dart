@@ -75,6 +75,11 @@ class _DashboardView extends ConsumerWidget {
         title: const Text('FocusFlow AI'),
         actions: [
           IconButton(
+            tooltip: 'Open Calendar & Time Intelligence',
+            onPressed: () => context.push('/calendar'),
+            icon: const Icon(Icons.calendar_month_rounded),
+          ),
+          IconButton(
             tooltip: 'Open Smart Tasks',
             onPressed: () => context.push('/tasks'),
             icon: const Icon(Icons.checklist_rounded),
@@ -366,12 +371,16 @@ class _QuickActions extends StatelessWidget {
               avatar: const Icon(Icons.add_task, size: 18),
               label: const Text('New task'),
               onPressed: () => context.push('/tasks')),
+          ActionChip(
+              avatar: const Icon(Icons.event_outlined, size: 18),
+              label: const Text('Calendar'),
+              onPressed: () => context.push('/calendar')),
           const ActionChip(
               avatar: Icon(Icons.note_add_outlined, size: 18),
               label: Text('New note')),
           const ActionChip(
-              avatar: Icon(Icons.event_outlined, size: 18),
-              label: Text('Event')),
+              avatar: Icon(Icons.auto_awesome_outlined, size: 18),
+              label: Text('AI plan')),
           const ActionChip(
               avatar: Icon(Icons.mic_none, size: 18),
               label: Text('Voice command')),

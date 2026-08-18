@@ -1,0 +1,38 @@
+import 'package:flutter_test/flutter_test.dart';
+
+import 'package:productivity_dashboard/features/calendar/calendar_models.dart';
+
+void main() {
+  test('calendar event round-trips and preserves duration metadata', () {
+    final start = DateTime.utc(2026, 8, 21, 9);
+    final event = CalendarEvent(
+        id: 'event-1',
+        title: 'Deep work',
+        startAt: start,
+        endAt: start.add(const Duration(minutes: 90)),
+        eventType: 'deep_work',
+        priority: 'high',
+        energyLevel: 'high',
+        aiScheduled: true);
+    final decoded = CalendarEvent.fromJson(event.toJson());
+
+    expect(decoded.title, 'Deep work');
+    expect(decoded.duration, const Duration(minutes: 90));
+    expect(decoded.eventType, 'deep_work');
+    expect(decoded.aiScheduled, isTrue);
+  });
+
+  test('calendar preferences retain accessibility and view settings', () {
+    const preferences = CalendarPreferences(
+        defaultView: 'day',
+        reducedMotion: true,
+        highContrast: true,
+        density: 'compact');
+    final decoded = CalendarPreferences.fromJson(preferences.toJson());
+
+    expect(decoded.defaultView, 'day');
+    expect(decoded.reducedMotion, isTrue);
+    expect(decoded.highContrast, isTrue);
+    expect(decoded.density, 'compact');
+  });
+}
