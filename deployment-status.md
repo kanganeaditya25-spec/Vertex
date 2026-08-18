@@ -55,3 +55,7 @@ The cache-busted local UI now shows a Related Goal selector in the New Task moda
 ## Public task-goal deployment
 
 The task-goal commit `e45949c` was pushed to `main` and the connected Vercel URL returned HTTP 200 after redeployment. The public `tasks.js` bundle contains the Related Goal selector, `goal_id` payload, and automatic-progress helper text. Because the Vercel SQLite runtime is ephemeral, the new deployment currently shows the PIN setup screen again and does not retain the previous demo PIN/data.
+
+## Frontend cache fix
+
+A user reported that the deployed task modal still showed the old UI without Related Goal. The public JavaScript bundle contained the feature, but the browser’s service worker was serving an older cached task script. The fix versions all frontend assets with `v=20260818-2`, bumps the service-worker cache to `productivity-dashboard-v2`, versions service-worker registration, and changes the service worker to network-first when online while retaining offline fallback. Local checks confirmed the new version markers are served.

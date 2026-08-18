@@ -105,3 +105,7 @@ The Dashboard now shows linked-task completion context beneath Active Goals, and
 The local regression suite passed the Vercel bootstrap test, settings/auth API smoke test, and task-goal smoke test. The task-goal test confirmed the full sequence `0% → 100% → 0%` as a linked task was completed and reopened. The cache-busted browser check confirmed the Related Goal selector, Goals report text, and Dashboard summary render correctly.
 
 The feature is committed and pushed in commit `e45949c`, and the public Vercel bundle contains the new task-goal UI. The existing Vercel persistence limitation remains unchanged: linked data uses the current SQLite storage model until an external durable database is added. After redeployment, the ephemeral instance returned to PIN setup and reset the prior demo data.
+
+## Frontend cache reliability fix
+
+A browser check showed the deployed task modal still rendering an older version without Related Goal, even though the public bundle contained the new feature. The cause was the previous cache-first service worker returning stale JavaScript. Frontend assets now use version query parameters, service-worker registration is versioned, the cache name is bumped to `productivity-dashboard-v2`, and online fetches use a network-first strategy with offline fallback. This ensures users receive the current task-goal UI after the deployment refresh.
