@@ -6,6 +6,8 @@ class WorkspaceModel {
       required this.name,
       this.description = '',
       this.icon = 'workspaces',
+      this.coverImage,
+      this.ownerId,
       this.color = '#4F46E5',
       this.favorite = false,
       this.archived = false,
@@ -17,6 +19,8 @@ class WorkspaceModel {
   final String name;
   final String description;
   final String icon;
+  final String? coverImage;
+  final String? ownerId;
   final String color;
   final bool favorite;
   final bool archived;
@@ -36,6 +40,8 @@ class WorkspaceModel {
           name: name ?? this.name,
           description: description ?? this.description,
           icon: icon,
+          coverImage: coverImage,
+          ownerId: ownerId,
           color: color,
           favorite: favorite ?? this.favorite,
           archived: archived ?? this.archived,
@@ -48,6 +54,9 @@ class WorkspaceModel {
       name: '${json['name'] ?? 'Workspace'}',
       description: '${json['description'] ?? ''}',
       icon: '${json['icon'] ?? 'workspaces'}',
+      coverImage:
+          json['cover_image'] as String? ?? json['coverImage'] as String?,
+      ownerId: json['owner_id'] as String? ?? json['ownerId'] as String?,
       color: '${json['color'] ?? '#4F46E5'}',
       favorite: json['favorite'] as bool? ?? false,
       archived: json['archived'] as bool? ?? false,
@@ -60,6 +69,8 @@ class WorkspaceModel {
         'name': name,
         'description': description,
         'icon': icon,
+        'cover_image': coverImage,
+        'owner_id': ownerId,
         'color': color,
         'favorite': favorite,
         'archived': archived,
@@ -76,18 +87,25 @@ class ProjectModel {
       required this.workspaceId,
       required this.name,
       this.description = '',
+      this.cover,
+      this.icon = 'folder_special',
       this.color = '#0F766E',
       this.status = 'planning',
       this.priority = 'medium',
       this.startDate,
       this.deadline,
       this.estimatedMinutes = 0,
+      this.budget,
       this.progress = 0,
       this.tags = const [],
       this.category = 'general',
       this.linkedGoalIds = const [],
       this.linkedTaskIds = const [],
       this.linkedNoteIds = const [],
+      this.linkedEventIds = const [],
+      this.linkedAssetIds = const [],
+      this.linkedReminderIds = const [],
+      this.statusOptions = const [],
       this.favorite = false,
       this.archived = false,
       this.locked = false,
@@ -98,18 +116,25 @@ class ProjectModel {
   final String workspaceId;
   final String name;
   final String description;
+  final String? cover;
+  final String icon;
   final String color;
   final String status;
   final String priority;
   final DateTime? startDate;
   final DateTime? deadline;
   final int estimatedMinutes;
+  final double? budget;
   final double progress;
   final List<String> tags;
   final String category;
   final List<String> linkedGoalIds;
   final List<String> linkedTaskIds;
   final List<String> linkedNoteIds;
+  final List<String> linkedEventIds;
+  final List<String> linkedAssetIds;
+  final List<String> linkedReminderIds;
+  final List<String> statusOptions;
   final bool favorite;
   final bool archived;
   final bool locked;
@@ -132,18 +157,25 @@ class ProjectModel {
           workspaceId: workspaceId,
           name: name ?? this.name,
           description: description ?? this.description,
+          cover: cover,
+          icon: icon,
           color: color,
           status: status ?? this.status,
           priority: priority ?? this.priority,
           startDate: startDate,
           deadline: deadline ?? this.deadline,
           estimatedMinutes: estimatedMinutes,
+          budget: budget,
           progress: progress ?? this.progress,
           tags: tags,
           category: category,
           linkedGoalIds: linkedGoalIds,
           linkedTaskIds: linkedTaskIds,
           linkedNoteIds: linkedNoteIds,
+          linkedEventIds: linkedEventIds,
+          linkedAssetIds: linkedAssetIds,
+          linkedReminderIds: linkedReminderIds,
+          statusOptions: statusOptions,
           favorite: favorite ?? this.favorite,
           archived: archived ?? this.archived,
           locked: locked,
@@ -155,6 +187,8 @@ class ProjectModel {
       workspaceId: '${json['workspace_id'] ?? json['workspaceId'] ?? ''}',
       name: '${json['name'] ?? 'Project'}',
       description: '${json['description'] ?? ''}',
+      cover: json['cover'] as String?,
+      icon: '${json['icon'] ?? 'folder_special'}',
       color: '${json['color'] ?? '#0F766E'}',
       status: '${json['status'] ?? 'planning'}',
       priority: '${json['priority'] ?? 'medium'}',
@@ -162,12 +196,22 @@ class ProjectModel {
       deadline: _date(json['deadline']),
       estimatedMinutes:
           _int(json['estimated_minutes'] ?? json['estimatedMinutes']),
+      budget: json['budget'] is num
+          ? (json['budget'] as num).toDouble()
+          : double.tryParse('${json['budget']}'),
       progress: _double(json['progress']),
       tags: _strings(json['tags']),
       category: '${json['category'] ?? 'general'}',
       linkedGoalIds: _strings(json['linked_goal_ids'] ?? json['linkedGoalIds']),
       linkedTaskIds: _strings(json['linked_task_ids'] ?? json['linkedTaskIds']),
       linkedNoteIds: _strings(json['linked_note_ids'] ?? json['linkedNoteIds']),
+      linkedEventIds:
+          _strings(json['linked_event_ids'] ?? json['linkedEventIds']),
+      linkedAssetIds:
+          _strings(json['linked_asset_ids'] ?? json['linkedAssetIds']),
+      linkedReminderIds:
+          _strings(json['linked_reminder_ids'] ?? json['linkedReminderIds']),
+      statusOptions: _strings(json['status_options'] ?? json['statusOptions']),
       favorite: json['favorite'] as bool? ?? false,
       archived: json['archived'] as bool? ?? false,
       locked: json['locked'] as bool? ?? false,
@@ -179,18 +223,25 @@ class ProjectModel {
         'workspace_id': workspaceId,
         'name': name,
         'description': description,
+        'cover': cover,
+        'icon': icon,
         'color': color,
         'status': status,
         'priority': priority,
         'start_date': startDate?.toIso8601String(),
         'deadline': deadline?.toIso8601String(),
         'estimated_minutes': estimatedMinutes,
+        'budget': budget,
         'progress': progress,
         'tags': tags,
         'category': category,
         'linked_goal_ids': linkedGoalIds,
         'linked_task_ids': linkedTaskIds,
         'linked_note_ids': linkedNoteIds,
+        'linked_event_ids': linkedEventIds,
+        'linked_asset_ids': linkedAssetIds,
+        'linked_reminder_ids': linkedReminderIds,
+        'status_options': statusOptions,
         'favorite': favorite,
         'archived': archived,
         'locked': locked,

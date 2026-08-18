@@ -97,9 +97,61 @@ class OrganizationRepository {
     await _queue('milestone', item.id, 'update', item.toJson());
   }
 
+  Future<void> archiveProject(ProjectModel item) async {
+    await saveProject(item.copyWith(status: 'archived', archived: true));
+  }
+
+  Future<void> archiveWorkspace(WorkspaceModel item) async {
+    await saveWorkspace(item.copyWith(archived: true));
+  }
+
+  Future<void> deleteProject(String id) async {
+    await _replace(
+        _projectsKey,
+        (await loadProjects()).where((item) => item.id != id).toList(),
+        (value) => value.toJson());
+    await _queue('project', id, 'delete', {'id': id});
+  }
+
+  Future<void> deleteWorkspace(String id) async {
+    await _replace(
+        _workspacesKey,
+        (await loadWorkspaces()).where((item) => item.id != id).toList(),
+        (value) => value.toJson());
+    await _queue('workspace', id, 'delete', {'id': id});
+  }
+
+  Future<ProjectModel> duplicateProject(ProjectModel source) async {
+    final now = DateTime.now();
+    final copy = ProjectModel(
+        id: 'project-${now.microsecondsSinceEpoch}',
+        workspaceId: source.workspaceId,
+        name: '${source.name} Copy',
+        description: source.description,
+        cover: source.cover,
+        icon: source.icon,
+        color: source.color,
+        status: 'planning',
+        priority: source.priority,
+        startDate: source.startDate,
+        deadline: source.deadline,
+        estimatedMinutes: source.estimatedMinutes,
+        budget: source.budget,
+        tags: source.tags,
+        category: source.category,
+        linkedGoalIds: source.linkedGoalIds,
+        linkedEventIds: source.linkedEventIds,
+        linkedAssetIds: source.linkedAssetIds,
+        linkedReminderIds: source.linkedReminderIds,
+        statusOptions: source.statusOptions,
+        createdAt: now,
+        updatedAt: now);
+    return createProject(copy);
+  }
+
   Future<List<Map<String, dynamic>>> loadQueue() async {
     final value = _preferences.getString(_queueKey);
-    if (value == null || value.isEmpty) return const [];
+    if (value == null || value.isEmpty) return <Map<String, dynamic>>[];
     try {
       return (jsonDecode(value) as List<dynamic>)
           .whereType<Map<String, dynamic>>()

@@ -8,6 +8,7 @@ from app.api.organization import router as organization_router
 from app.api.health import router as health_router
 from app.api.tasks import router as tasks_router
 from app.core.config import settings
+from app.db.migrations import ensure_additive_schema
 from app.db.session import Base, engine
 from app.models import task as _task_models
 from app.calendar import models as _calendar_models
@@ -31,11 +32,13 @@ app.include_router(assistant_router, prefix="/api/v1")
 app.include_router(organization_router, prefix="/api/v1")
 app.include_router(analytics_router, prefix="/api/v1")
 Base.metadata.create_all(bind=engine)
+ensure_additive_schema(engine)
 
 
 @app.on_event("startup")
 def initialize_database() -> None:
     Base.metadata.create_all(bind=engine)
+    ensure_additive_schema(engine)
 
 
 @app.get("/", tags=["meta"])

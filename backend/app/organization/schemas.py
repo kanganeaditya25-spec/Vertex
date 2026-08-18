@@ -70,6 +70,9 @@ class ProjectCreate(BaseModel):
     linked_task_ids: list[str] = Field(default_factory=list)
     linked_note_ids: list[str] = Field(default_factory=list)
     linked_event_ids: list[str] = Field(default_factory=list)
+    linked_asset_ids: list[str] = Field(default_factory=list)
+    linked_reminder_ids: list[str] = Field(default_factory=list)
+    status_options: list[str] = Field(default_factory=list)
     ai_summary: str = ""
     favorite: bool = False
     locked: bool = False
@@ -86,7 +89,7 @@ class ProjectUpdate(BaseModel):
     cover: str | None = None
     icon: str | None = None
     color: str | None = None
-    status: Status | None = None
+    status: str | None = Field(default=None, min_length=1, max_length=32)
     priority: Priority | None = None
     start_date: date | None = None
     deadline: date | None = None
@@ -99,6 +102,9 @@ class ProjectUpdate(BaseModel):
     linked_task_ids: list[str] | None = None
     linked_note_ids: list[str] | None = None
     linked_event_ids: list[str] | None = None
+    linked_asset_ids: list[str] | None = None
+    linked_reminder_ids: list[str] | None = None
+    status_options: list[str] | None = None
     ai_summary: str | None = None
     archived: bool | None = None
     favorite: bool | None = None
@@ -205,7 +211,12 @@ class ProjectDashboard(OrganizationModel):
     linked_goals: list[GoalRead]
     task_count: int
     completed_task_count: int
+    calendar_event_count: int = 0
+    note_count: int = 0
+    asset_count: int = 0
+    reminder_count: int = 0
     average_milestone_progress: float
+    connected_routes: dict[str, str] = Field(default_factory=dict)
     deadline_risk: str
     recent_activity: list[str]
     ai_summary: str
@@ -245,3 +256,49 @@ class ProjectIntelligence(BaseModel):
     confidence: float
     recommendations: list[str]
     explanation: str
+
+
+class DependencyConflict(BaseModel):
+    milestone_id: str
+    milestone_name: str
+    dependency_id: str
+    conflict_type: Literal["missing", "self", "cycle", "cross_project"]
+    explanation: str
+
+
+class DependencyCheck(BaseModel):
+    project_id: str
+    valid: bool
+    conflicts: list[DependencyConflict]
+    explanation: str
+
+
+class ProjectManagerPlan(BaseModel):
+    project_id: str
+    summary: str
+    estimated_minutes: int
+    suggested_deadline: date | None
+    milestones: list[str]
+    next_actions: list[str]
+    blockers: list[str]
+    explanation: str
+
+
+class ProjectChatRequest(BaseModel):
+    message: str = Field(min_length=1, max_length=2000)
+
+
+class ProjectChatResponse(BaseModel):
+    project_id: str
+    response: str
+    explanation: str
+    actions: list[dict[str, Any]]
+
+
+class ProjectExport(BaseModel):
+    exported_at: datetime
+    workspace: WorkspaceRead | None
+    project: ProjectRead
+    milestones: list[MilestoneRead]
+    goals: list[GoalRead]
+    integrations: dict[str, Any]

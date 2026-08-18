@@ -1,17 +1,21 @@
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, datetime, timedelta
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
+from app.calendar.models import EventModel
 from app.db.session import get_db
+from app.notes.models import NoteModel
 from app.models.task import TaskModel
-from app.organization.engine import deadline_risk, effective_project_progress, project_recommendations, project_summary, search_score
+from app.organization.engine import dependency_conflicts, deadline_risk, effective_project_progress, project_manager_plan, project_recommendations, project_summary, search_score
 from app.organization.models import Goal, Milestone, OrganizationSyncQueue, Project, ProjectTemplate, Workspace
 from app.organization.schemas import (
+    DependencyCheck,
+    DependencyConflict,
     GoalCreate,
     GoalRead,
     GoalUpdate,
@@ -22,7 +26,11 @@ from app.organization.schemas import (
     OrganizationSearchResult,
     OrganizationStats,
     ProjectCreate,
+    ProjectChatRequest,
+    ProjectChatResponse,
     ProjectDashboard,
+    ProjectExport,
+    ProjectManagerPlan,
     ProjectIntelligence,
     ProjectRead,
     ProjectTemplateCreate,
@@ -231,7 +239,7 @@ def delete_project(project_id: str, db: Session = Depends(get_db)) -> dict[str, 
 @router.post("/projects/{project_id}/duplicate", response_model=ProjectRead, status_code=status.HTTP_201_CREATED)
 def duplicate_project(project_id: str, db: Session = Depends(get_db)) -> Project:
     source = _project_or_404(db, project_id)
-    duplicate = Project(workspace_id=source.workspace_id, name=f"{source.name} Copy", description=source.description, cover=source.cover, icon=source.icon, color=source.color, status="planning", priority=source.priority, start_date=source.start_date, deadline=source.deadline, estimated_minutes=source.estimated_minutes, progress=0, budget=source.budget, tags=list(source.tags or []), category=source.category, owner_id=source.owner_id, linked_goal_ids=list(source.linked_goal_ids or []), linked_task_ids=[], linked_note_ids=[], linked_event_ids=[], ai_summary="", favorite=False, locked=False)
+    duplicate = Project(workspace_id=source.workspace_id, name=f"{source.name} Copy", description=source.description, cover=source.cover, icon=source.icon, color=source.color, status="planning", priority=source.priority, start_date=source.start_date, deadline=source.deadline, estimated_minutes=source.estimated_minutes, progress=0, budget=source.budget, tags=list(source.tags or []), category=source.category, owner_id=source.owner_id, linked_goal_ids=list(source.linked_goal_ids or []), linked_task_ids=[], linked_note_ids=[], linked_event_ids=list(source.linked_event_ids or []), linked_asset_ids=list(source.linked_asset_ids or []), linked_reminder_ids=list(source.linked_reminder_ids or []), status_options=list(source.status_options or []), ai_summary="", favorite=False, locked=False)
     db.add(duplicate)
     db.flush()
     _queue(db, "project", duplicate.id, "duplicate", {"source_id": source.id})
@@ -246,8 +254,18 @@ def project_dashboard(project_id: str, db: Session = Depends(get_db)) -> Project
     milestones = _project_milestones(db, project.id)
     goals = _project_goals(db, project)
     task_ids = list(project.linked_task_ids or [])
-    tasks = list(db.scalars(select(TaskModel).where(TaskModel.id.in_(task_ids))).all()) if task_ids else []
+    task_filters = [TaskModel.id.in_(task_ids)] if task_ids else []
+    task_filters.extend([TaskModel.project == project.id, TaskModel.project == project.name])
+    tasks = list(db.scalars(select(TaskModel).where(or_(*task_filters), TaskModel.deleted_at.is_(None))).all())
     completed = sum(task.status == "completed" for task in tasks)
+    event_ids = list(project.linked_event_ids or [])
+    event_filters = [EventModel.id.in_(event_ids)] if event_ids else []
+    event_filters.append(EventModel.project_id == project.id)
+    calendar_events = list(db.scalars(select(EventModel).where(or_(*event_filters), EventModel.deleted_at.is_(None))).all())
+    note_ids = list(project.linked_note_ids or [])
+    note_filters = [NoteModel.id.in_(note_ids)] if note_ids else []
+    note_filters.append(NoteModel.project_id == project.id)
+    notes = list(db.scalars(select(NoteModel).where(or_(*note_filters), NoteModel.deleted.is_(False), NoteModel.archived.is_(False))).all())
     progress = effective_project_progress(project, milestones)
     if milestones and abs(project.progress - progress) > 0.1 and not project.locked:
         project.progress = progress
@@ -258,7 +276,7 @@ def project_dashboard(project_id: str, db: Session = Depends(get_db)) -> Project
     activity = [f"{len(milestones)} milestones tracked", f"{completed} of {len(tasks)} linked tasks completed"]
     if goals:
         activity.append(f"Aligned with {len(goals)} goal(s)")
-    return ProjectDashboard(project=project, milestones=milestones, linked_goals=goals, task_count=len(tasks), completed_task_count=completed, average_milestone_progress=progress, deadline_risk=risk, recent_activity=activity, ai_summary=project_summary(project, milestones, goals), recommendations=recommendations)
+    return ProjectDashboard(project=project, milestones=milestones, linked_goals=goals, task_count=len(tasks), completed_task_count=completed, calendar_event_count=len(calendar_events), note_count=len(notes), asset_count=len(project.linked_asset_ids or []), reminder_count=len(project.linked_reminder_ids or []), average_milestone_progress=progress, connected_routes={"tasks": "/tasks?project=" + project.id, "calendar": "/calendar?project=" + project.id, "notes": "/notes?project=" + project.id, "analytics": "/analytics?project=" + project.id, "assistant": "/assistant?project=" + project.id}, deadline_risk=risk, recent_activity=activity, ai_summary=project_summary(project, milestones, goals), recommendations=recommendations)
 
 
 @router.get("/projects/{project_id}/intelligence", response_model=ProjectIntelligence)
@@ -396,7 +414,7 @@ def instantiate_template(template_id: str, workspace_id: str = Query(...), db: S
 
 
 @router.get("/search", response_model=OrganizationSearchResponse)
-def search_organization(q: str = Query(min_length=1, max_length=180), workspace_id: str | None = None, db: Session = Depends(get_db)) -> OrganizationSearchResponse:
+def search_organization(q: str = Query(min_length=1, max_length=180), workspace_id: str | None = None, search_status: str | None = Query(default=None, alias="status"), category: str | None = None, tag: str | None = None, goal_id: str | None = None, db: Session = Depends(get_db)) -> OrganizationSearchResponse:
     results: list[OrganizationSearchResult] = []
     workspaces = list(db.scalars(select(Workspace).where(Workspace.archived.is_(False))).all())
     projects = list(db.scalars(select(Project).where(Project.archived.is_(False))).all())
@@ -408,6 +426,14 @@ def search_organization(q: str = Query(min_length=1, max_length=180), workspace_
             results.append(OrganizationSearchResult(entity_type="workspace", entity_id=item.id, title=item.name, subtitle=item.description, status="active", route="/organization?workspace=" + item.id, score=score))
     for item in projects:
         if workspace_id and item.workspace_id != workspace_id:
+            continue
+        if search_status and item.status != search_status:
+            continue
+        if category and item.category != category:
+            continue
+        if tag and tag.casefold() not in {value.casefold() for value in (item.tags or [])}:
+            continue
+        if goal_id and goal_id not in (item.linked_goal_ids or []):
             continue
         score = search_score(q, item.name, item.description, item.category, item.status, " ".join(item.tags or []))
         if score:
@@ -437,3 +463,62 @@ def organization_statistics(db: Session = Depends(get_db)) -> OrganizationStats:
     milestones = list(db.scalars(select(Milestone)).all())
     risks = sum(deadline_risk(project, _project_milestones(db, project.id)) in {"high", "medium"} for project in projects)
     return OrganizationStats(workspace_count=len(workspaces), project_count=len(projects), active_project_count=sum(item.status == "active" for item in projects), completed_project_count=sum(item.status == "completed" for item in projects), goal_count=len(goals), milestone_count=len(milestones), deadline_risk_count=risks, average_project_progress=round(sum(item.progress for item in projects) / len(projects), 1) if projects else 0.0)
+
+
+@router.get("/projects/{project_id}/dependencies", response_model=DependencyCheck)
+def project_dependencies(project_id: str, db: Session = Depends(get_db)) -> DependencyCheck:
+    project = _project_or_404(db, project_id)
+    conflicts = dependency_conflicts(_project_milestones(db, project.id))
+    typed = [DependencyConflict(**item) for item in conflicts]
+    return DependencyCheck(project_id=project.id, valid=not typed, conflicts=typed, explanation="Dependencies are checked locally for self-links, missing milestones, and cycles before the project critical path is trusted.")
+
+
+@router.post("/projects/{project_id}/manager-plan", response_model=ProjectManagerPlan)
+def project_manager_plan_endpoint(project_id: str, db: Session = Depends(get_db)) -> ProjectManagerPlan:
+    project = _project_or_404(db, project_id)
+    milestones = _project_milestones(db, project.id)
+    goals = _project_goals(db, project)
+    task_ids = list(project.linked_task_ids or [])
+    task_count = len(db.scalars(select(TaskModel).where(or_(TaskModel.id.in_(task_ids), TaskModel.project == project.id))).all()) if task_ids else len(db.scalars(select(TaskModel).where(TaskModel.project == project.id)).all())
+    plan = project_manager_plan(project, milestones, goals, task_count, len(dependency_conflicts(milestones)))
+    return ProjectManagerPlan(project_id=project.id, **plan)
+
+
+@router.post("/projects/{project_id}/chat", response_model=ProjectChatResponse)
+def project_chat(project_id: str, payload: ProjectChatRequest, db: Session = Depends(get_db)) -> ProjectChatResponse:
+    project = _project_or_404(db, project_id)
+    milestones = _project_milestones(db, project.id)
+    goals = _project_goals(db, project)
+    text = payload.message.casefold()
+    summary = project_summary(project, milestones, goals)
+    risk = deadline_risk(project, milestones)
+    recommendations = project_recommendations(project, milestones, goals)
+    actions: list[dict[str, Any]] = []
+    if "summar" in text or "status" in text or "progress" in text:
+        response = f"{summary} Deadline risk is {risk}. {recommendations[0] if recommendations else 'No further local recommendation is needed.'}"
+    elif "block" in text or "risk" in text:
+        conflicts = dependency_conflicts(milestones)
+        response = f"The current deadline risk is {risk}. " + (f"There are {len(conflicts)} dependency conflict(s) to resolve." if conflicts else "No dependency conflicts were found in the saved milestone graph.")
+    elif "milestone" in text:
+        response = "The next saved milestone sequence is: " + (", ".join(item.name for item in milestones if not item.completed) or "No incomplete milestones; add the next checkpoint.")
+        actions.append({"action": "create_milestone", "label": "Add milestone", "payload": {"project_id": project.id}})
+    else:
+        response = f"I can summarize {project.name}, inspect blockers, or review milestones locally. {summary}"
+    return ProjectChatResponse(project_id=project.id, response=response, explanation="This project chat is a deterministic offline assistant using the project, milestones, dependency graph, linked goals, and current status. It does not send project content to a cloud service.", actions=actions)
+
+
+@router.get("/projects/{project_id}/export", response_model=ProjectExport)
+def export_project(project_id: str, db: Session = Depends(get_db)) -> ProjectExport:
+    project = _project_or_404(db, project_id)
+    workspace = db.get(Workspace, project.workspace_id)
+    milestones = _project_milestones(db, project.id)
+    goals = _project_goals(db, project)
+    return ProjectExport(exported_at=datetime.now(), workspace=workspace, project=project, milestones=milestones, goals=goals, integrations={"task_ids": project.linked_task_ids or [], "note_ids": project.linked_note_ids or [], "event_ids": project.linked_event_ids or [], "asset_ids": project.linked_asset_ids or [], "reminder_ids": project.linked_reminder_ids or [], "routes": {"tasks": "/tasks?project=" + project.id, "calendar": "/calendar?project=" + project.id, "notes": "/notes?project=" + project.id, "analytics": "/analytics?project=" + project.id, "assistant": "/assistant?project=" + project.id}})
+
+
+@router.get("/workspaces/{workspace_id}/export")
+def export_workspace(workspace_id: str, db: Session = Depends(get_db)) -> dict[str, Any]:
+    workspace = _workspace_or_404(db, workspace_id)
+    projects = list(db.scalars(select(Project).where(Project.workspace_id == workspace_id)).all())
+    goals = list(db.scalars(select(Goal).where(Goal.workspace_id == workspace_id)).all())
+    return {"exported_at": datetime.now(), "workspace": workspace, "projects": projects, "goals": goals, "project_count": len(projects), "goal_count": len(goals)}

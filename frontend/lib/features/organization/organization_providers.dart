@@ -207,6 +207,62 @@ class OrganizationController extends AsyncNotifier<OrganizationState> {
         AsyncData(current.copyWith(milestones: [...current.milestones, item]));
   }
 
+  Future<void> updateProject(ProjectModel item) async {
+    final current = state.valueOrNull;
+    if (current == null || _repository == null) {
+      return;
+    }
+    await _repository!.saveProject(item);
+    state = AsyncData(current.copyWith(
+        projects: current.projects
+            .map((value) => value.id == item.id ? item : value)
+            .toList()));
+  }
+
+  Future<void> archiveProject() async {
+    final current = state.valueOrNull;
+    final project = current?.selectedProject;
+    if (current == null || project == null || _repository == null) {
+      return;
+    }
+    await _repository!.archiveProject(project);
+    final nextProjects = current.projects
+        .map((value) => value.id == project.id
+            ? project.copyWith(status: 'archived', archived: true)
+            : value)
+        .toList();
+    state = AsyncData(current.copyWith(
+        projects: nextProjects,
+        selectedProjectId: current.workspaceProjects
+            .where((value) => value.id != project.id)
+            .firstOrNull
+            ?.id));
+  }
+
+  Future<void> duplicateProject() async {
+    final current = state.valueOrNull;
+    final project = current?.selectedProject;
+    if (current == null || project == null || _repository == null) {
+      return;
+    }
+    final copy = await _repository!.duplicateProject(project);
+    state = AsyncData(current.copyWith(
+        projects: [...current.projects, copy], selectedProjectId: copy.id));
+  }
+
+  Future<void> deleteProject() async {
+    final current = state.valueOrNull;
+    final project = current?.selectedProject;
+    if (current == null || project == null || _repository == null) {
+      return;
+    }
+    await _repository!.deleteProject(project.id);
+    state = AsyncData(current.copyWith(
+        projects:
+            current.projects.where((value) => value.id != project.id).toList(),
+        selectedProjectId: null));
+  }
+
   Future<void> updateMilestone(MilestoneModel item) async {
     final current = state.valueOrNull;
     if (current == null || _repository == null) return;

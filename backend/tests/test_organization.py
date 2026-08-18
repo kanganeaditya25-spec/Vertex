@@ -88,3 +88,54 @@ def test_templates_instantiate_and_duplicate_workspace() -> None:
     client.delete(f"/api/v1/organization/projects/{instantiated.json()['project']['id']}")
     client.delete(f"/api/v1/organization/workspaces/{workspace_id}")
     client.delete(f"/api/v1/organization/workspaces/{duplicate.json()['id']}")
+
+
+def test_project_manager_dependencies_chat_export_and_filtered_search() -> None:
+    suffix = uuid4().hex[:8]
+    workspace = client.post("/api/v1/organization/workspaces", json={"name": f"Complete audit {suffix}"})
+    assert workspace.status_code == 201
+    workspace_id = workspace.json()["id"]
+    project = client.post(
+        "/api/v1/organization/projects",
+        json={
+            "workspace_id": workspace_id,
+            "name": f"Audit-ready project {suffix}",
+            "status": "on_hold",
+            "category": "research",
+            "tags": ["audit", "module7"],
+            "linked_asset_ids": ["asset-1"],
+            "linked_reminder_ids": ["reminder-1"],
+            "status_options": ["planning", "active", "on_hold", "completed"],
+        },
+    )
+    assert project.status_code == 201
+    project_data = project.json()
+    milestone = client.post("/api/v1/organization/milestones", json={"project_id": project_data["id"], "name": "Dependency review", "dependency_ids": ["missing-milestone"]})
+    assert milestone.status_code == 201
+
+    dependencies = client.get(f"/api/v1/organization/projects/{project_data['id']}/dependencies")
+    assert dependencies.status_code == 200
+    assert dependencies.json()["valid"] is False
+    assert dependencies.json()["conflicts"][0]["conflict_type"] == "missing"
+
+    plan = client.post(f"/api/v1/organization/projects/{project_data['id']}/manager-plan")
+    assert plan.status_code == 200
+    assert plan.json()["blockers"]
+    assert "locally" in plan.json()["explanation"]
+
+    chat = client.post(f"/api/v1/organization/projects/{project_data['id']}/chat", json={"message": "What is blocking this project?"})
+    assert chat.status_code == 200
+    assert "risk" in chat.json()["response"].lower() or "conflict" in chat.json()["response"].lower()
+    assert chat.json()["explanation"]
+
+    exported = client.get(f"/api/v1/organization/projects/{project_data['id']}/export")
+    assert exported.status_code == 200
+    assert exported.json()["integrations"]["asset_ids"] == ["asset-1"]
+    assert exported.json()["integrations"]["reminder_ids"] == ["reminder-1"]
+
+    filtered = client.get("/api/v1/organization/search", params={"q": "audit", "status": "on_hold", "category": "research", "tag": "module7"})
+    assert filtered.status_code == 200
+    assert any(item["entity_id"] == project_data["id"] for item in filtered.json()["results"])
+
+    client.delete(f"/api/v1/organization/projects/{project_data['id']}")
+    client.delete(f"/api/v1/organization/workspaces/{workspace_id}")

@@ -1,5 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/services.dart';
 
 import 'organization_models.dart';
 import 'organization_providers.dart';
@@ -403,6 +407,38 @@ class _ProjectWorkspace extends ConsumerWidget {
                 onPressed: () => _newMilestone(context, ref),
                 icon: const Icon(Icons.flag_outlined),
                 label: const Text('Milestone')),
+            PopupMenuButton<String>(
+              tooltip: 'Project actions',
+              onSelected: (action) async {
+                if (action == 'duplicate') {
+                  await controller.duplicateProject();
+                } else if (action == 'archive') {
+                  await controller.archiveProject();
+                } else if (action == 'delete') {
+                  final confirmed = await _confirmAction(
+                      context,
+                      'Delete project',
+                      'Remove this project from the local workspace?');
+                  if (confirmed) {
+                    await controller.deleteProject();
+                  }
+                } else if (action == 'manager') {
+                  await _showProjectManager(context, project, milestones);
+                } else if (action == 'export') {
+                  await _showExportNotice(context, project);
+                }
+              },
+              itemBuilder: (context) => const [
+                PopupMenuItem(
+                    value: 'manager', child: Text('Project manager plan')),
+                PopupMenuItem(
+                    value: 'export', child: Text('Export project JSON')),
+                PopupMenuItem(
+                    value: 'duplicate', child: Text('Duplicate project')),
+                PopupMenuItem(value: 'archive', child: Text('Archive project')),
+                PopupMenuItem(value: 'delete', child: Text('Delete locally')),
+              ],
+            ),
           ],
         ),
         const SizedBox(height: 16),
@@ -426,6 +462,8 @@ class _ProjectWorkspace extends ConsumerWidget {
             project: project,
             milestones: milestones,
             progress: state.progressFor(project)),
+        const SizedBox(height: 12),
+        _ConnectedSystems(project: project),
         const SizedBox(height: 16),
         _ProjectViewBody(
             state: state, project: project, milestones: milestones),
@@ -1109,3 +1147,158 @@ IconData _viewIcon(String view) {
 
 String _shortDate(DateTime value) =>
     '${value.month}/${value.day}/${value.year}';
+
+class _ConnectedSystems extends StatelessWidget {
+  const _ConnectedSystems({required this.project});
+  final ProjectModel project;
+
+  @override
+  Widget build(BuildContext context) {
+    final chips = <Widget>[
+      ActionChip(
+          avatar: const Icon(Icons.checklist_rounded, size: 18),
+          label: Text('Tasks ${project.linkedTaskIds.length}'),
+          onPressed: () => context.push('/tasks')),
+      ActionChip(
+          avatar: const Icon(Icons.calendar_month_rounded, size: 18),
+          label: Text('Calendar ${project.linkedEventIds.length}'),
+          onPressed: () => context.push('/calendar')),
+      ActionChip(
+          avatar: const Icon(Icons.menu_book_rounded, size: 18),
+          label: Text('Notes ${project.linkedNoteIds.length}'),
+          onPressed: () => context.push('/notes')),
+      ActionChip(
+          avatar: const Icon(Icons.attach_file_rounded, size: 18),
+          label: Text('Assets ${project.linkedAssetIds.length}'),
+          onPressed: () => _showUnavailable(context, 'Asset Library')),
+      ActionChip(
+          avatar: const Icon(Icons.notifications_none_rounded, size: 18),
+          label: Text('Reminders ${project.linkedReminderIds.length}'),
+          onPressed: () => _showUnavailable(context, 'Reminder Engine')),
+      ActionChip(
+          avatar: const Icon(Icons.insights_rounded, size: 18),
+          label: const Text('Analytics'),
+          onPressed: () => context.push('/analytics')),
+      ActionChip(
+          avatar: const Icon(Icons.auto_awesome_rounded, size: 18),
+          label: const Text('Project AI'),
+          onPressed: () => context.push('/assistant')),
+    ];
+    return Card(
+      elevation: 0,
+      color: const Color(0xFFF8FAFC),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('Connected systems',
+              style: Theme.of(context)
+                  .textTheme
+                  .titleSmall
+                  ?.copyWith(fontWeight: FontWeight.w800)),
+          const SizedBox(height: 4),
+          Text('Keep project context visible across the FocusFlow modules.',
+              style: Theme.of(context).textTheme.bodySmall),
+          const SizedBox(height: 10),
+          Wrap(spacing: 8, runSpacing: 8, children: chips),
+        ]),
+      ),
+    );
+  }
+}
+
+Future<bool> _confirmAction(
+    BuildContext context, String title, String body) async {
+  final result = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) =>
+          AlertDialog(title: Text(title), content: Text(body), actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(dialogContext, false),
+                child: const Text('Cancel')),
+            FilledButton(
+                onPressed: () => Navigator.pop(dialogContext, true),
+                child: const Text('Continue'))
+          ]));
+  return result == true;
+}
+
+Future<void> _showProjectManager(BuildContext context, ProjectModel project,
+    List<MilestoneModel> milestones) async {
+  final incomplete = milestones
+      .where((item) => !item.completed)
+      .map((item) => item.name)
+      .toList();
+  await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+              title: Text('${project.name} plan'),
+              content: SingleChildScrollView(
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                    Text(
+                        '${project.progress.toStringAsFixed(0)}% complete · ${project.status.replaceAll('_', ' ')}'),
+                    const SizedBox(height: 12),
+                    const Text('Local recommendation',
+                        style: TextStyle(fontWeight: FontWeight.w800)),
+                    const SizedBox(height: 4),
+                    Text(project.deadline == null
+                        ? 'No deadline is set. Add one after choosing the next checkpoint.'
+                        : 'Use the next milestone to protect the project deadline.'),
+                    const SizedBox(height: 12),
+                    const Text('Next actions',
+                        style: TextStyle(fontWeight: FontWeight.w800)),
+                    const SizedBox(height: 4),
+                    for (final name in incomplete.isEmpty
+                        ? [
+                            'Define the next milestone',
+                            'Create one concrete linked task',
+                            'Schedule a review checkpoint'
+                          ]
+                        : incomplete.take(3))
+                      Padding(
+                          padding: const EdgeInsets.only(bottom: 4),
+                          child: Text('• $name'))
+                  ])),
+              actions: [
+                FilledButton(
+                    onPressed: () => Navigator.pop(dialogContext),
+                    child: const Text('Close'))
+              ]));
+}
+
+Future<void> _showExportNotice(
+    BuildContext context, ProjectModel project) async {
+  final payload = jsonEncode(project.toJson());
+  await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+              title: const Text('Project export'),
+              content: const Text(
+                  'The project JSON is ready. Copy it to keep a portable offline snapshot.'),
+              actions: [
+                TextButton(
+                    onPressed: () async {
+                      await Clipboard.setData(ClipboardData(text: payload));
+                      if (dialogContext.mounted) Navigator.pop(dialogContext);
+                    },
+                    child: const Text('Copy JSON')),
+                FilledButton(
+                    onPressed: () => Navigator.pop(dialogContext),
+                    child: const Text('Close'))
+              ]));
+}
+
+Future<void> _showUnavailable(BuildContext context, String name) async {
+  await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+              title: Text(name),
+              content: Text(
+                  '$name is prepared as an integration point in the project context. Its dedicated module can be connected without changing this hierarchy.'),
+              actions: [
+                FilledButton(
+                    onPressed: () => Navigator.pop(dialogContext),
+                    child: const Text('Close'))
+              ]));
+}
