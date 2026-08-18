@@ -1,6 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../models/dashboard_models.dart';
 import '../../providers/dashboard_providers.dart';
@@ -73,6 +74,11 @@ class _DashboardView extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('FocusFlow AI'),
         actions: [
+          IconButton(
+            tooltip: 'Open Smart Tasks',
+            onPressed: () => context.push('/tasks'),
+            icon: const Icon(Icons.checklist_rounded),
+          ),
           IconButton(
             tooltip: 'Search your workspace',
             onPressed: () => _showSearch(context),
@@ -356,8 +362,10 @@ class _QuickActions extends StatelessWidget {
               avatar: const Icon(Icons.timer_outlined, size: 18),
               label: const Text('Start focus'),
               onPressed: controller.startFocus),
-          const ActionChip(
-              avatar: Icon(Icons.add_task, size: 18), label: Text('New task')),
+          ActionChip(
+              avatar: const Icon(Icons.add_task, size: 18),
+              label: const Text('New task'),
+              onPressed: () => context.push('/tasks')),
           const ActionChip(
               avatar: Icon(Icons.note_add_outlined, size: 18),
               label: Text('New note')),
