@@ -4,7 +4,7 @@
 **Repository:** [kanganeaditya25-spec/Vertex](https://github.com/kanganeaditya25-spec/Vertex)
 **Public deployment:** [https://vertex-eta-bice.vercel.app/](https://vertex-eta-bice.vercel.app/)
 **Current branch:** `main`
-**Latest deployed fix commit:** `e23e980` — `Fix Vercel serverless filesystem crash`
+**Latest deployed commit:** `8cad653` — `Deploy Task 2 Flutter dashboard to web`
 
 ## Executive summary
 
@@ -17,13 +17,13 @@ The application is currently usable as a Vercel demo. Its remaining architectura
 | Area | Status | Details |
 |---|---|---|
 | Express backend | Complete | Existing API routes for authentication, tasks, library, goals, reports, notifications, and settings are deployed. |
-| Vanilla PWA frontend | Complete | Dashboard shell, navigation, manifest, service worker, responsive layout, and page modules load publicly. |
+| Flutter web client | Deployed and verified | Task 2 Material 3 command center is published at the root URL; the Express API remains available under `/api/*`. |
 | PIN security | Complete for current demo instance | Temporary test PIN `123456` was created with user confirmation and the public dashboard unlocked successfully. |
 | Task management | Verified | Public Tasks page loads with filters, search, and task creation controls. |
 | Personal Library | Verified | Public Library page loads with filters, search, and Add Item controls. |
 | Reports & Goals | Verified | Daily, Monthly, and Goals tabs load; no-Gemini-key fallback guidance renders correctly. |
 | Settings | Verified | Reminder controls, Gemini key field, PIN controls, lock, and export are available. Notifications are off by default. |
-| Vercel deployment | Complete | Public root, manifest, service worker, and auth-status endpoint all return HTTP 200. |
+| Vercel deployment | Complete | Production deployment from commit `8cad653` is `READY`; the Flutter shell and compiled bundle return HTTP 200, and `/api/auth/status` remains healthy. |
 | Project record | Complete | This document and `deployment-status.md` record the diagnosis, patches, verification, and limitations. |
 
 ## Original failure and confirmed cause
@@ -130,8 +130,10 @@ Task 1 is now complete as a staged architecture foundation. The implementation w
 
 ## Task 2 — AI Dashboard and Command Center
 
-**Status:** Foundation implemented; commit pending.
+**Status:** Complete for the Task 2 command-center scope; deployed commit `8cad653`.
 
-Task 2 added the Flutter command-center foundation described in `docs/TASK_02_DASHBOARD_COMMAND_CENTER.md`. The staged dashboard now has smart greeting, today overview, priority ordering, focus controls with local persistence, calendar preview, recent notes, project status, habits, analytics chart, local AI readiness, quick actions, widget visibility customization, responsive one/two-column layout, Material 3 theming, Riverpod state, and SharedPreferences-backed offline snapshots.
+Task 2 added the Flutter command-center foundation described in `docs/TASK_02_DASHBOARD_COMMAND_CENTER.md`. The dashboard has smart greeting, today overview, priority ordering, focus controls with local persistence, calendar preview, recent notes, project status, habits, analytics chart, local AI readiness, quick actions, widget visibility customization, responsive one/two-column layout, Material 3 theming, Riverpod state, and SharedPreferences-backed offline snapshots.
 
-The deterministic Task 2 structure verifier passed, and the existing FastAPI suite passed three tests. Flutter analyzer and widget/integration tests remain pending because Flutter/Dart are not installed in the current sandbox; this limitation is recorded explicitly. The public Vercel site remains the legacy web prototype until the Flutter client has a supported build and a separate deployment path.
+Flutter 3.47.0 and Dart 3.13.0 were installed at `/home/ubuntu/flutter/`. Dependency resolution completed after removing the unused `appflowy_editor` package and aligning `intl` with the Flutter localization SDK. `flutter analyze` reports no issues, `flutter test` passes both dashboard model tests, and `flutter build web --release` completes successfully. The missing web platform files were generated with `flutter create . --platforms web` and the compiled output was published into the Express app’s `public/` directory.
+
+The Flutter client now has an environment-overridable API base URL whose production default is `https://vertex-eta-bice.vercel.app/api`. Authenticated synchronization is optional and only activates when a JWT is stored by a future PIN/auth flow; without a token, the app remains a usable offline-first dashboard rather than making unauthenticated requests. The live Vercel root now serves the Flutter dashboard while the existing Express API continues to handle `/api/*` routes.

@@ -1,6 +1,6 @@
 # Task 2 — AI Dashboard and Command Center
 
-**Status:** Foundation implemented — Flutter SDK verification pending
+**Status:** Complete for Task 2 command-center scope — Flutter web deployed in commit `8cad653`
 **Source:** User-provided Task 2 specification
 **Application direction:** FocusFlow AI / Productivity Boost Dashboard
 
@@ -47,12 +47,14 @@ The dashboard starts from an empty local snapshot when no saved data exists and 
 - Widget visibility changes persist through the dashboard repository.
 - Phone and desktop layouts use one and two columns respectively.
 - The dashboard exposes no secrets, JWTs, private tokens, or internal logs.
-- Flutter test/analyzer verification is run when the Flutter SDK is available; until then, it remains explicitly pending.
+- Flutter analyzer and tests pass with the installed Flutter SDK; the release web build is published and verified on Vercel.
 
 ## Verification evidence
 
-The deterministic Task 2 foundation verifier passed and confirmed the Flutter shell, required Riverpod provider names, repository persistence keys, local Ollama endpoints, dashboard sections, and absence of mock/placeholder markers in production Dart code. The existing FastAPI regression suite also passed all three tests. Flutter analyzer, widget tests, golden tests, and integration tests remain pending because the Flutter SDK is not installed in the current sandbox; they are not claimed as complete.
+The deterministic Task 2 foundation verifier passed and confirmed the Flutter shell, required Riverpod provider names, repository persistence keys, local Ollama endpoints, dashboard sections, and absence of mock/placeholder markers in production Dart code. Flutter 3.47.0 and Dart 3.13.0 were then installed. `flutter analyze` reports no issues, `flutter test` passes both dashboard model tests, and `flutter build web --release` completes successfully. The Flutter web platform files were generated, and the resulting static assets were published through the existing Express `public/` directory.
+
+The production deployment from commit `8cad653` is `READY` at Vercel. The live root returns the Flutter HTML shell and `main.dart.js` returns HTTP 200. The existing Express `/api/auth/status` endpoint also returns HTTP 200, confirming that the API runtime remains available alongside the Flutter client.
 
 ## Explicit scope boundary
 
-This task builds the dashboard command-center foundation and its real local state behavior. It does not yet implement every future module, full remote synchronization, the complete database repository set, or installed local AI models. Those are separate tasks and must connect through the boundaries defined here.
+This task builds the dashboard command-center foundation and its real local state behavior. It does not yet implement every future module, the complete database repository set, or installed local AI models. The Flutter client now exposes an environment-overridable API base URL and an optional authenticated task/goal synchronization boundary, but it does not yet include the PIN login screen needed to obtain and persist a JWT. Until that auth flow is added, the deployed client intentionally remains offline-first and uses its local snapshot.
