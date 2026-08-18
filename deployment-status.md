@@ -43,3 +43,11 @@ The approved PIN setup completed successfully and redirected to `#dashboard`. Th
 The public Personal Library page loaded with search, category filters, and Add Item. Reports & Goals loaded with Daily, Monthly, and Goals tabs, zero-data metrics, and the expected no-Gemini-key guidance. Both authenticated routes are functioning on Vercel.
 
 The public Settings page loaded with reminder selectors, Gemini API key configuration, PIN controls, lock, and export. DOM verification confirmed the push notification toggle is inactive by default, with morning and evening reminders at 08:00 and 20:00.
+
+## Task-goal feature verification
+
+The backend task-goal smoke test passed: a linked task moved its goal from 0% to 100% and the goal status changed to completed; reopening the task reversed the goal to 0% and active. The local task page loaded, but the browser-rendered New Task modal did not yet show the Related Goal selector, so the frontend script source/cache needs to be checked before finalizing.
+
+The local server serves the updated `tasks.js` with `Related Goal` and `goal_id`, but the browser’s fetched script remained an older cached copy. The discrepancy is caused by the existing service-worker/browser cache; it must be cleared or bypassed before judging the frontend change.
+
+The cache-busted local UI now shows a Related Goal selector in the New Task modal, populated with the existing goal and helper text explaining automatic progress. The Goals tab shows `Link tasks to track this goal automatically` for goals without linked tasks, and the Dashboard shows the linked-task summary area while preserving existing cards and metrics.

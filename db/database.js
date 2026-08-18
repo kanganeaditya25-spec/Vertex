@@ -35,7 +35,8 @@ db.exec(`
     reminder_time TEXT,
     created_at TEXT DEFAULT (datetime('now')),
     completed_at TEXT,
-    sort_order INTEGER DEFAULT 0
+    sort_order INTEGER DEFAULT 0,
+    goal_id TEXT
   );
 
   CREATE TABLE IF NOT EXISTS task_assets (
@@ -84,6 +85,13 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_library_category ON library_items(category);
   CREATE INDEX IF NOT EXISTS idx_goals_status ON goals(status);
 `);
+
+// Backward-compatible migration for databases created before task-goal links.
+const taskColumns = db.prepare('PRAGMA table_info(tasks)').all();
+if (!taskColumns.some(column => column.name === 'goal_id')) {
+  db.exec('ALTER TABLE tasks ADD COLUMN goal_id TEXT');
+}
+db.exec('CREATE INDEX IF NOT EXISTS idx_tasks_goal_id ON tasks(goal_id)');
 
 // Helper functions
 const getSetting = (key) => {

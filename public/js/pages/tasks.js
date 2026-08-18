@@ -72,6 +72,13 @@ const TasksPage = {
               <label class="form-label">Category</label>
               <input type="text" class="form-input" id="task-category" placeholder="e.g. work, personal, study" value="general">
             </div>
+            <div class="form-group">
+              <label class="form-label">Related Goal <span style="font-weight:400; color:var(--text-tertiary);">(optional)</span></label>
+              <select class="form-select" id="task-goal">
+                <option value="">No related goal</option>
+              </select>
+              <div style="font-size: var(--text-xs); color: var(--text-tertiary); margin-top: var(--space-1);">Completed linked tasks automatically increase goal progress.</div>
+            </div>
             <div class="form-group" id="task-assets-section" style="display:none;">
               <label class="form-label">Attachments</label>
               <div class="asset-list" id="task-asset-list"></div>
@@ -89,7 +96,24 @@ const TasksPage = {
       </div>
     `;
 
+    this.loadGoalOptions();
     this.loadTasks();
+  },
+
+  async loadGoalOptions() {
+    const select = document.getElementById('task-goal');
+    if (!select) return;
+
+    try {
+      const goals = await API.getGoals();
+      const selected = select.value;
+      select.innerHTML = '<option value="">No related goal</option>' + goals.map(goal =>
+        `<option value="${goal.id}">${this.escapeHtml(goal.title)}${goal.status === 'completed' ? ' (completed)' : ''}</option>`
+      ).join('');
+      if (selected) select.value = selected;
+    } catch (error) {
+      console.warn('[Tasks] Could not load goals:', error.message);
+    }
   },
 
   async loadTasks() {
@@ -125,6 +149,7 @@ const TasksPage = {
               <span>${task.category}</span>
               ${task.due_date ? `<span>📅 ${formatDateShort(task.due_date)}</span>` : ''}
               ${task.reminder_time ? `<span>⏰ ${task.reminder_time}</span>` : ''}
+              ${task.goal ? `<span>🎯 ${this.escapeHtml(task.goal.title)}</span>` : ''}
               ${task.assets && task.assets.length > 0 ? `<span>📎 ${task.assets.length}</span>` : ''}
             </div>
           </div>
@@ -154,6 +179,7 @@ const TasksPage = {
 
   async openModal(taskId) {
     const modal = document.getElementById('task-modal');
+    await this.loadGoalOptions();
     const titleEl = document.getElementById('task-modal-title');
     const assetsSection = document.getElementById('task-assets-section');
 
@@ -166,6 +192,7 @@ const TasksPage = {
     document.getElementById('task-due').value = getTodayStr();
     document.getElementById('task-reminder').value = '';
     document.getElementById('task-category').value = 'general';
+    document.getElementById('task-goal').value = '';
 
     if (taskId) {
       titleEl.textContent = 'Edit Task';
@@ -180,6 +207,7 @@ const TasksPage = {
         document.getElementById('task-due').value = task.due_date || '';
         document.getElementById('task-reminder').value = task.reminder_time || '';
         document.getElementById('task-category').value = task.category || 'general';
+        document.getElementById('task-goal').value = task.goal_id || '';
         this.renderAssets(task);
       } catch (error) {
         showToast('Failed to load task', 'error');
@@ -257,6 +285,7 @@ const TasksPage = {
       due_date: document.getElementById('task-due').value || null,
       reminder_time: document.getElementById('task-reminder').value || null,
       category: document.getElementById('task-category').value || 'general',
+      goal_id: document.getElementById('task-goal').value || null,
     };
 
     if (!data.title.trim()) {

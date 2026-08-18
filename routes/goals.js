@@ -1,6 +1,7 @@
 const express = require('express');
 const { v4: uuidv4 } = require('uuid');
 const { db } = require('../db/database');
+const { syncGoalProgress, withTaskStats } = require('../services/goals');
 
 const router = express.Router();
 
@@ -16,14 +17,15 @@ router.get('/', (req, res) => {
   }
 
   query += ' ORDER BY created_at DESC';
-  res.json(db.prepare(query).all(...params));
+  const goals = db.prepare(query).all(...params).map(withTaskStats);
+  res.json(goals);
 });
 
 // Get single goal
 router.get('/:id', (req, res) => {
   const goal = db.prepare('SELECT * FROM goals WHERE id = ?').get(req.params.id);
   if (!goal) return res.status(404).json({ error: 'Goal not found' });
-  res.json(goal);
+  res.json(withTaskStats(goal));
 });
 
 // Create goal
@@ -41,7 +43,7 @@ router.post('/', (req, res) => {
   `).run(id, title.trim(), description || '', target_date || null, progress || 0);
 
   const goal = db.prepare('SELECT * FROM goals WHERE id = ?').get(id);
-  res.status(201).json(goal);
+  res.status(201).json(withTaskStats(goal));
 });
 
 // Update goal
@@ -80,8 +82,9 @@ router.put('/:id', (req, res) => {
     req.params.id
   );
 
+  syncGoalProgress(req.params.id);
   const updated = db.prepare('SELECT * FROM goals WHERE id = ?').get(req.params.id);
-  res.json(updated);
+  res.json(withTaskStats(updated));
 });
 
 // Delete goal
@@ -89,6 +92,7 @@ router.delete('/:id', (req, res) => {
   const goal = db.prepare('SELECT * FROM goals WHERE id = ?').get(req.params.id);
   if (!goal) return res.status(404).json({ error: 'Goal not found' });
 
+  db.prepare('UPDATE tasks SET goal_id = NULL WHERE goal_id = ?').run(req.params.id);
   db.prepare('DELETE FROM goals WHERE id = ?').run(req.params.id);
   res.json({ success: true });
 });

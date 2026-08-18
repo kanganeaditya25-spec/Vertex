@@ -37,7 +37,7 @@ const ReportsPage = {
                 <input type="date" class="form-input" id="goal-target-date">
               </div>
               <div class="form-group">
-                <label class="form-label">Progress (%)</label>
+                <label class="form-label">Progress (%) <span style="font-weight:400; color:var(--text-tertiary);">(auto from linked tasks)</span></label>
                 <input type="number" class="form-input" id="goal-progress" min="0" max="100" value="0">
               </div>
             </div>
@@ -335,6 +335,9 @@ const ReportsPage = {
               </div>
               <div class="progress-bar">
                 <div class="progress-bar-fill ${goal.progress >= 70 ? 'green' : goal.progress >= 30 ? 'amber' : 'red'}" style="width: ${goal.progress}%"></div>
+              </div>
+              <div style="font-size: var(--text-xs); color: var(--text-tertiary); margin-top: var(--space-2);">
+                ${goal.linked_task_count > 0 ? `${goal.completed_task_count}/${goal.linked_task_count} linked tasks completed` : 'Link tasks to track this goal automatically'}
               </div>
               ${goal.target_date ? `<div style="font-size: var(--text-xs); color: var(--text-tertiary); margin-top: var(--space-2);">Target: ${formatDate(goal.target_date)}</div>` : ''}
               ${notes.length > 0 ? `

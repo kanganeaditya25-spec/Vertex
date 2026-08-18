@@ -4,6 +4,7 @@ const path = require('path');
 const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
 const { db } = require('../db/database');
+const { syncGoalProgress } = require('../services/goals');
 
 const router = express.Router();
 
@@ -63,8 +64,10 @@ router.get('/', (req, res) => {
 
   // Attach assets to each task
   const assetStmt = db.prepare('SELECT * FROM task_assets WHERE task_id = ?');
+  const goalStmt = db.prepare('SELECT id, title, status, progress FROM goals WHERE id = ?');
   tasks.forEach(task => {
     task.assets = assetStmt.all(task.id);
+    task.goal = task.goal_id ? goalStmt.get(task.goal_id) || null : null;
   });
 
   res.json(tasks);
@@ -76,25 +79,32 @@ router.get('/:id', (req, res) => {
   if (!task) return res.status(404).json({ error: 'Task not found' });
 
   task.assets = db.prepare('SELECT * FROM task_assets WHERE task_id = ?').all(task.id);
+  task.goal = task.goal_id ? db.prepare('SELECT id, title, status, progress FROM goals WHERE id = ?').get(task.goal_id) || null : null;
   res.json(task);
 });
 
 // Create task
 router.post('/', (req, res) => {
-  const { title, description, status, priority, category, due_date, reminder_time } = req.body;
+  const { title, description, status, priority, category, due_date, reminder_time, goal_id } = req.body;
 
   if (!title || !title.trim()) {
     return res.status(400).json({ error: 'Title is required' });
   }
 
+  const normalizedGoalId = goal_id || null;
+  if (normalizedGoalId && !db.prepare('SELECT id FROM goals WHERE id = ?').get(normalizedGoalId)) {
+    return res.status(400).json({ error: 'Selected goal was not found' });
+  }
+
   const id = uuidv4();
   db.prepare(`
-    INSERT INTO tasks (id, title, description, status, priority, category, due_date, reminder_time)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(id, title.trim(), description || '', status || 'todo', priority || 'medium', category || 'general', due_date || null, reminder_time || null);
+    INSERT INTO tasks (id, title, description, status, priority, category, due_date, reminder_time, goal_id)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(id, title.trim(), description || '', status || 'todo', priority || 'medium', category || 'general', due_date || null, reminder_time || null, normalizedGoalId);
 
   const task = db.prepare('SELECT * FROM tasks WHERE id = ?').get(id);
   task.assets = [];
+  task.goal = normalizedGoalId ? db.prepare('SELECT id, title, status, progress FROM goals WHERE id = ?').get(normalizedGoalId) || null : null;
   res.status(201).json(task);
 });
 
@@ -104,6 +114,12 @@ router.put('/:id', (req, res) => {
   if (!task) return res.status(404).json({ error: 'Task not found' });
 
   const { title, description, status, priority, category, due_date, reminder_time, sort_order } = req.body;
+  const hasGoalId = Object.prototype.hasOwnProperty.call(req.body, 'goal_id');
+  const nextGoalId = hasGoalId ? (req.body.goal_id || null) : task.goal_id;
+
+  if (nextGoalId && !db.prepare('SELECT id FROM goals WHERE id = ?').get(nextGoalId)) {
+    return res.status(400).json({ error: 'Selected goal was not found' });
+  }
 
   let completed_at = task.completed_at;
   if (status === 'done' && task.status !== 'done') {
@@ -116,19 +132,23 @@ router.put('/:id', (req, res) => {
     UPDATE tasks SET 
       title = ?, description = ?, status = ?, priority = ?, 
       category = ?, due_date = ?, reminder_time = ?, 
-      sort_order = ?, completed_at = ?
+      sort_order = ?, completed_at = ?, goal_id = ?
     WHERE id = ?
   `).run(
     title || task.title, description ?? task.description, 
     status || task.status, priority || task.priority,
     category || task.category, due_date ?? task.due_date, 
     reminder_time ?? task.reminder_time,
-    sort_order ?? task.sort_order, completed_at,
+    sort_order ?? task.sort_order, completed_at, nextGoalId,
     req.params.id
   );
 
+  if (task.goal_id && task.goal_id !== nextGoalId) syncGoalProgress(task.goal_id);
+  if (nextGoalId) syncGoalProgress(nextGoalId);
+
   const updated = db.prepare('SELECT * FROM tasks WHERE id = ?').get(req.params.id);
   updated.assets = db.prepare('SELECT * FROM task_assets WHERE task_id = ?').all(updated.id);
+  updated.goal = updated.goal_id ? db.prepare('SELECT id, title, status, progress FROM goals WHERE id = ?').get(updated.goal_id) || null : null;
   res.json(updated);
 });
 
@@ -143,8 +163,11 @@ router.patch('/:id/toggle', (req, res) => {
   db.prepare('UPDATE tasks SET status = ?, completed_at = ? WHERE id = ?')
     .run(newStatus, completed_at, req.params.id);
 
+  if (task.goal_id) syncGoalProgress(task.goal_id);
+
   const updated = db.prepare('SELECT * FROM tasks WHERE id = ?').get(req.params.id);
   updated.assets = db.prepare('SELECT * FROM task_assets WHERE task_id = ?').all(updated.id);
+  updated.goal = updated.goal_id ? db.prepare('SELECT id, title, status, progress FROM goals WHERE id = ?').get(updated.goal_id) || null : null;
   res.json(updated);
 });
 
@@ -160,7 +183,9 @@ router.delete('/:id', (req, res) => {
     if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
   });
 
+  const linkedGoalId = task.goal_id;
   db.prepare('DELETE FROM tasks WHERE id = ?').run(req.params.id);
+  if (linkedGoalId) syncGoalProgress(linkedGoalId);
   res.json({ success: true });
 });
 

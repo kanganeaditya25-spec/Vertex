@@ -87,3 +87,21 @@ For a durable release, migrate the SQLite tables to a hosted database compatible
 [1]: https://vercel.com/docs/frameworks/backend/express "Express on Vercel — Vercel Documentation"
 [2]: https://vercel.com/kb/guide/is-sqlite-supported-in-vercel "Is SQLite supported in Vercel? — Vercel Knowledge Base"
 [3]: https://render.com/docs/free "Deploy for Free — Render Documentation"
+
+## Task–goal connection feature
+
+**Status:** Implemented and verified locally.
+
+Tasks now have an optional `goal_id` link. The task modal includes a simple Related Goal selector populated from existing goals, and task cards show the linked goal title when present. The database performs a backward-compatible migration for existing installations.
+
+When a linked task is completed, the related goal progress is calculated as:
+
+> completed linked tasks ÷ total linked tasks × 100
+
+A goal with all linked tasks completed is automatically marked completed. Reopening a linked task recalculates the goal and returns it to active status. Removing a task or moving it to another goal also recalculates the affected goal. Goals without linked tasks continue to support the existing manual progress field.
+
+The Dashboard now shows linked-task completion context beneath Active Goals, and each goal card displays its linked-task completion count. The Goals report includes the same linked-task totals so the existing interface remains simple but more informative.
+
+The local regression suite passed the Vercel bootstrap test, settings/auth API smoke test, and task-goal smoke test. The task-goal test confirmed the full sequence `0% → 100% → 0%` as a linked task was completed and reopened. The cache-busted browser check confirmed the Related Goal selector, Goals report text, and Dashboard summary render correctly.
+
+The feature is committed locally in the working tree but still needs to be pushed and redeployed before it appears on the public Vercel URL. The existing Vercel persistence limitation remains unchanged: linked data uses the current SQLite storage model until an external durable database is added.

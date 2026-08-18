@@ -1,5 +1,6 @@
 const express = require('express');
 const { db } = require('../db/database');
+const { syncGoalProgress, withTaskStats } = require('../services/goals');
 const { generateDailyReport, generateMonthlyReport, generateGoalAnalysis } = require('../services/gemini');
 
 const router = express.Router();
@@ -60,7 +61,9 @@ router.get('/monthly', async (req, res) => {
 // Goals analysis report
 router.get('/goals', async (req, res) => {
   try {
-    const goals = db.prepare('SELECT * FROM goals ORDER BY created_at DESC').all();
+    const rawGoals = db.prepare('SELECT * FROM goals ORDER BY created_at DESC').all();
+    rawGoals.forEach(goal => syncGoalProgress(goal.id));
+    const goals = rawGoals.map(goal => withTaskStats(db.prepare('SELECT * FROM goals WHERE id = ?').get(goal.id)));
 
     // Get tasks from last 30 days
     const thirtyDaysAgo = new Date();

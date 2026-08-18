@@ -18,6 +18,8 @@ const DashboardPage = {
       const pendingAll = tasks.filter(t => t.status !== 'done').length;
       const overdue = tasks.filter(t => t.due_date && t.due_date < today && t.status !== 'done').length;
       const activeGoals = goals.filter(g => g.status === 'active').length;
+      const linkedTaskTotal = goals.reduce((sum, goal) => sum + (goal.linked_task_count || 0), 0);
+      const linkedTaskCompleted = goals.reduce((sum, goal) => sum + (goal.completed_task_count || 0), 0);
 
       container.innerHTML = `
         <div class="stats-grid">
@@ -87,7 +89,7 @@ const DashboardPage = {
             <div class="card-header">
               <div>
                 <div class="card-title">Active Goals</div>
-                <div class="card-subtitle">${activeGoals} goals in progress</div>
+                <div class="card-subtitle">${activeGoals} goals in progress${linkedTaskTotal > 0 ? ` · ${linkedTaskCompleted}/${linkedTaskTotal} linked tasks done` : ''}</div>
               </div>
               <button class="btn btn-primary btn-sm" onclick="window.location.hash='#reports'">Reports</button>
             </div>
@@ -104,6 +106,9 @@ const DashboardPage = {
                 </div>
                 <div class="progress-bar">
                   <div class="progress-bar-fill ${goal.progress >= 70 ? 'green' : goal.progress >= 30 ? 'amber' : 'red'}" style="width: ${goal.progress}%"></div>
+                </div>
+                <div style="font-size: var(--text-xs); color: var(--text-tertiary); margin-top: var(--space-2);">
+                  ${goal.linked_task_count > 0 ? `${goal.completed_task_count}/${goal.linked_task_count} linked tasks completed` : 'No linked tasks yet'}
                 </div>
               </div>
             `).join('')}
