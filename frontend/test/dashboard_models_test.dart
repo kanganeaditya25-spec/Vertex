@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import '../lib/models/dashboard_models.dart';
+import 'package:productivity_dashboard/models/dashboard_models.dart';
 
 void main() {
   test('empty dashboard snapshot is safe for offline startup', () {
@@ -15,8 +15,22 @@ void main() {
   test('dashboard snapshot round-trips through JSON', () {
     final original = DashboardSnapshot(
       userName: 'Aditya',
-      tasks: [const TaskSummary(id: 't1', title: 'Plan the day', status: 'todo', priority: 'high', estimatedMinutes: 30)],
-      goals: [const GoalSummary(id: 'g1', title: 'Build consistency', progress: 0.4, linkedTaskCount: 2, completedTaskCount: 1)],
+      tasks: [
+        const TaskSummary(
+            id: 't1',
+            title: 'Plan the day',
+            status: 'todo',
+            priority: 'high',
+            estimatedMinutes: 30)
+      ],
+      goals: [
+        const GoalSummary(
+            id: 'g1',
+            title: 'Build consistency',
+            progress: 0.4,
+            linkedTaskCount: 2,
+            completedTaskCount: 1)
+      ],
       events: const [],
       projects: const [],
       habits: const [],

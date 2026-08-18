@@ -5,11 +5,17 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/dashboard_models.dart';
 import '../repositories/dashboard_repository.dart';
+import '../services/dashboard_api_service.dart';
 
-final dashboardControllerProvider = AsyncNotifierProvider<DashboardController, DashboardState>(DashboardController.new);
+final dashboardControllerProvider =
+    AsyncNotifierProvider<DashboardController, DashboardState>(
+        DashboardController.new);
 
 class DashboardState {
-  const DashboardState({required this.snapshot, required this.preferences, this.localAiAvailable = false});
+  const DashboardState(
+      {required this.snapshot,
+      required this.preferences,
+      this.localAiAvailable = false});
 
   final DashboardSnapshot snapshot;
   final DashboardPreferences preferences;
@@ -19,7 +25,8 @@ class DashboardState {
     DashboardSnapshot? snapshot,
     DashboardPreferences? preferences,
     bool? localAiAvailable,
-  }) => DashboardState(
+  }) =>
+      DashboardState(
         snapshot: snapshot ?? this.snapshot,
         preferences: preferences ?? this.preferences,
         localAiAvailable: localAiAvailable ?? this.localAiAvailable,
@@ -28,6 +35,7 @@ class DashboardState {
 
 class DashboardController extends AsyncNotifier<DashboardState> {
   DashboardRepository? _repository;
+  DashboardApiService? _apiService;
   Timer? _focusTimer;
 
   @override
@@ -35,15 +43,26 @@ class DashboardController extends AsyncNotifier<DashboardState> {
     ref.onDispose(() => _focusTimer?.cancel());
     final sharedPreferences = await SharedPreferences.getInstance();
     _repository = DashboardRepository(sharedPreferences);
-    final snapshot = await _repository!.loadSnapshot();
+    _apiService = DashboardApiService(sharedPreferences);
+    final localSnapshot = await _repository!.loadSnapshot();
     final preferences = _repository!.loadPreferences();
-    return DashboardState(snapshot: snapshot, preferences: preferences);
+    final syncedSnapshot = await _apiService!.trySync(localSnapshot);
+    if (syncedSnapshot != null) {
+      await _repository!.saveSnapshot(syncedSnapshot);
+    }
+    return DashboardState(
+        snapshot: syncedSnapshot ?? localSnapshot, preferences: preferences);
   }
 
   Future<void> refresh() async {
     final current = state.valueOrNull;
     if (current == null || _repository == null) return;
-    final snapshot = await _repository!.loadSnapshot();
+    final localSnapshot = await _repository!.loadSnapshot();
+    final syncedSnapshot = await _apiService?.trySync(localSnapshot);
+    final snapshot = syncedSnapshot ?? localSnapshot;
+    if (syncedSnapshot != null) {
+      await _repository!.saveSnapshot(syncedSnapshot);
+    }
     state = AsyncData(current.copyWith(snapshot: snapshot));
   }
 
@@ -61,15 +80,20 @@ class DashboardController extends AsyncNotifier<DashboardState> {
     _focusTimer?.cancel();
     _focusTimer = Timer.periodic(const Duration(seconds: 1), (_) {
       final live = state.valueOrNull;
-      if (live == null || !live.snapshot.focus.isRunning || live.snapshot.focus.isPaused) return;
+      if (live == null ||
+          !live.snapshot.focus.isRunning ||
+          live.snapshot.focus.isPaused) return;
       final nextFocus = live.snapshot.focus.copyWith(
         elapsedSeconds: live.snapshot.focus.elapsedSeconds + 1,
         todaySeconds: live.snapshot.focus.todaySeconds + 1,
-        longestSessionSeconds: live.snapshot.focus.longestSessionSeconds < live.snapshot.focus.elapsedSeconds + 1
+        longestSessionSeconds: live.snapshot.focus.longestSessionSeconds <
+                live.snapshot.focus.elapsedSeconds + 1
             ? live.snapshot.focus.elapsedSeconds + 1
             : live.snapshot.focus.longestSessionSeconds,
       );
-      state = AsyncData(live.copyWith(snapshot: live.snapshot.copyWith(focus: nextFocus, lastUpdated: DateTime.now())));
+      state = AsyncData(live.copyWith(
+          snapshot: live.snapshot
+              .copyWith(focus: nextFocus, lastUpdated: DateTime.now())));
     });
   }
 
@@ -77,7 +101,8 @@ class DashboardController extends AsyncNotifier<DashboardState> {
     final current = state.valueOrNull;
     if (current == null) return;
     state = AsyncData(current.copyWith(
-      snapshot: current.snapshot.copyWith(focus: current.snapshot.focus.copyWith(isPaused: true)),
+      snapshot: current.snapshot
+          .copyWith(focus: current.snapshot.focus.copyWith(isPaused: true)),
     ));
     await _persist();
   }
@@ -86,7 +111,8 @@ class DashboardController extends AsyncNotifier<DashboardState> {
     final current = state.valueOrNull;
     if (current == null) return;
     state = AsyncData(current.copyWith(
-      snapshot: current.snapshot.copyWith(focus: current.snapshot.focus.copyWith(isPaused: false)),
+      snapshot: current.snapshot
+          .copyWith(focus: current.snapshot.focus.copyWith(isPaused: false)),
     ));
     await _persist();
   }
@@ -97,7 +123,8 @@ class DashboardController extends AsyncNotifier<DashboardState> {
     _focusTimer?.cancel();
     state = AsyncData(current.copyWith(
       snapshot: current.snapshot.copyWith(
-        focus: current.snapshot.focus.copyWith(isRunning: false, isPaused: false, elapsedSeconds: 0),
+        focus: current.snapshot.focus
+            .copyWith(isRunning: false, isPaused: false, elapsedSeconds: 0),
       ),
     ));
     await _persist();
@@ -112,7 +139,9 @@ class DashboardController extends AsyncNotifier<DashboardState> {
     } else {
       visible.add(widgetId);
     }
-    final preferences = DashboardPreferences(visibleWidgets: visible, pinnedWidgets: current.preferences.pinnedWidgets);
+    final preferences = DashboardPreferences(
+        visibleWidgets: visible,
+        pinnedWidgets: current.preferences.pinnedWidgets);
     state = AsyncData(current.copyWith(preferences: preferences));
     await _repository!.savePreferences(preferences);
   }
@@ -127,12 +156,17 @@ class DashboardController extends AsyncNotifier<DashboardState> {
 
   Future<void> _persist() async {
     final current = state.valueOrNull;
-    if (current != null && _repository != null) await _repository!.saveSnapshot(current.snapshot);
+    if (current != null && _repository != null)
+      await _repository!.saveSnapshot(current.snapshot);
   }
 }
 
 class DashboardStatistics {
-  const DashboardStatistics({required this.totalTasks, required this.completedTasks, required this.pendingTasks, required this.completionRate});
+  const DashboardStatistics(
+      {required this.totalTasks,
+      required this.completedTasks,
+      required this.pendingTasks,
+      required this.completionRate});
 
   final int totalTasks;
   final int completedTasks;
@@ -143,32 +177,45 @@ class DashboardStatistics {
 final dashboardProvider = dashboardControllerProvider;
 
 final greetingProvider = Provider<String>((ref) {
-  final snapshot = ref.watch(dashboardControllerProvider).valueOrNull?.snapshot ?? DashboardSnapshot.empty();
+  final snapshot =
+      ref.watch(dashboardControllerProvider).valueOrNull?.snapshot ??
+          DashboardSnapshot.empty();
   final hour = DateTime.now().hour;
-  final greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+  final greeting = hour < 12
+      ? 'Good morning'
+      : hour < 18
+          ? 'Good afternoon'
+          : 'Good evening';
   return '$greeting, ${snapshot.userName}';
 });
 
 final analyticsProvider = Provider<List<TaskSummary>>((ref) {
-  return ref.watch(dashboardControllerProvider).valueOrNull?.snapshot.tasks ?? const [];
+  return ref.watch(dashboardControllerProvider).valueOrNull?.snapshot.tasks ??
+      const [];
 });
 
-final quickActionProvider = Provider<List<String>>((ref) => const ['start_focus', 'new_task', 'new_note', 'event', 'voice_command']);
+final quickActionProvider = Provider<List<String>>((ref) =>
+    const ['start_focus', 'new_task', 'new_note', 'event', 'voice_command']);
 
 final recentActivityProvider = Provider<List<NoteSummary>>((ref) {
-  return ref.watch(dashboardControllerProvider).valueOrNull?.snapshot.notes ?? const [];
+  return ref.watch(dashboardControllerProvider).valueOrNull?.snapshot.notes ??
+      const [];
 });
 
 final aiInsightProvider = Provider<bool>((ref) {
-  return ref.watch(dashboardControllerProvider).valueOrNull?.localAiAvailable ?? false;
+  return ref.watch(dashboardControllerProvider).valueOrNull?.localAiAvailable ??
+      false;
 });
 
 final widgetProvider = Provider<DashboardPreferences>((ref) {
-  return ref.watch(dashboardControllerProvider).valueOrNull?.preferences ?? DashboardPreferences.defaults();
+  return ref.watch(dashboardControllerProvider).valueOrNull?.preferences ??
+      DashboardPreferences.defaults();
 });
 
 final statisticsProvider = Provider<DashboardStatistics>((ref) {
-  final tasks = ref.watch(dashboardControllerProvider).valueOrNull?.snapshot.tasks ?? const [];
+  final tasks =
+      ref.watch(dashboardControllerProvider).valueOrNull?.snapshot.tasks ??
+          const [];
   final completed = tasks.where((task) => task.isCompleted).length;
   return DashboardStatistics(
     totalTasks: tasks.length,
@@ -181,5 +228,6 @@ final statisticsProvider = Provider<DashboardStatistics>((ref) {
 final notificationProvider = Provider<int>((ref) => 0);
 
 final focusProvider = Provider<FocusSummary>((ref) {
-  return ref.watch(dashboardControllerProvider).valueOrNull?.snapshot.focus ?? const FocusSummary();
+  return ref.watch(dashboardControllerProvider).valueOrNull?.snapshot.focus ??
+      const FocusSummary();
 });
