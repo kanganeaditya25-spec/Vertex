@@ -358,10 +358,10 @@ Validation passed with **46 Flutter tests**, `flutter analyze` reporting **No is
 
 
 ## FocusFlow Frontend Polish and Efficiency — 2026-08-19
-**Status:** Implemented, validated, and release-built; deployment pending.
+**Status:** Implemented, validated, committed, deployed, and smoke-tested.
 
 The shared frontend visual system now uses more consistent light Material 3 tokens: a 64-pixel AppBar, stronger title hierarchy, 16-pixel cards, rounded filled inputs with visible focus states, consistent 48-pixel button heights, compact chips, larger 44-pixel icon-button targets, predictable dialogs and snackbars, improved list spacing, and a visible web scrollbar. The changes preserve solid surfaces, restrained accents, offline-first behavior, and no gradients or decorative effects.
 
 The Dashboard is now constrained to a readable 1,400-pixel content width on very wide screens instead of stretching across the entire viewport. Today’s Mission actions wrap cleanly on narrow screens, which prevents overflow and makes the primary workflow easier to use on smaller devices. Acceptance record: `docs/FRONTEND_POLISH_2026-08-19.md`.
 
-Validation passed with **46 Flutter tests**, **52 FastAPI tests**, `flutter analyze` reporting **No issues found**, `git diff --check`, and a successful production Flutter web release build. The release output is synchronized into `public/`; GitHub and Vercel deployment remain the final gates.
+Validation passed with **46 Flutter tests**, **52 FastAPI tests**, `flutter analyze` reporting **No issues found**, `git diff --check`, and a successful production Flutter web release build. Commit `e70f0f5` was pushed to GitHub and deployed to Vercel production as `dpl_7H7hbFLQh55SZ2w3jkVbS9yJ7DiZ`, which reported **READY**. The stable root returned HTTP 200 and the live bundle contained the verified frontend polish markers.
