@@ -1,6 +1,7 @@
 import 'package:go_router/go_router.dart';
 
 import '../features/analytics/analytics_page.dart';
+import '../features/assets/assets_page.dart';
 import '../features/automation/automation_page.dart';
 import '../features/assistant/assistant_page.dart';
 import '../features/calendar/calendar_page.dart';
@@ -38,6 +39,10 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/settings',
       builder: (context, state) => const SettingsPage(),
+    ),
+    GoRoute(
+      path: '/assets',
+      builder: (context, state) => const AssetsPage(),
     ),
   ],
 );

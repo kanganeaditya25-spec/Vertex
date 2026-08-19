@@ -1170,7 +1170,7 @@ class _ConnectedSystems extends StatelessWidget {
       ActionChip(
           avatar: const Icon(Icons.attach_file_rounded, size: 18),
           label: Text('Assets ${project.linkedAssetIds.length}'),
-          onPressed: () => _showUnavailable(context, 'Asset Library')),
+          onPressed: () => context.push('/assets')),
       ActionChip(
           avatar: const Icon(Icons.notifications_none_rounded, size: 18),
           label: Text('Reminders ${project.linkedReminderIds.length}'),
