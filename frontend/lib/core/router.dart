@@ -1,13 +1,14 @@
 import 'package:go_router/go_router.dart';
 
 import '../features/analytics/analytics_page.dart';
+import '../features/auth/auth_gate_page.dart';
+import '../features/auth/auth_page.dart';
 import '../features/assets/assets_page.dart';
 import '../features/automation/automation_page.dart';
 import '../features/assistant/assistant_page.dart';
 import '../features/calendar/calendar_page.dart';
 import '../features/notes/notes_page.dart';
 import '../features/organization/organization_page.dart';
-import '../features/dashboard/dashboard_page.dart';
 import '../features/tasks/task_home_page.dart';
 import '../features/settings/settings_page.dart';
 import '../features/reminders/reminders_page.dart';
@@ -16,7 +17,15 @@ import '../features/search/global_search_page.dart';
 
 final GoRouter appRouter = GoRouter(
   routes: [
-    GoRoute(path: '/', builder: (context, state) => const DashboardPage()),
+    GoRoute(path: '/', builder: (context, state) => const AuthGatePage()),
+    GoRoute(
+        path: '/login',
+        builder: (context, state) =>
+            const AuthPage(initialMode: AuthMode.signIn)),
+    GoRoute(
+        path: '/signup',
+        builder: (context, state) =>
+            const AuthPage(initialMode: AuthMode.signUp)),
     GoRoute(
       path: '/tasks',
       builder: (context, state) =>

@@ -38,15 +38,30 @@ class ProductivityApp extends ConsumerWidget {
   }
 }
 
-ThemeData _theme(Color accent, Brightness brightness, double scale) =>
-    ThemeData(
-      useMaterial3: true,
-      colorSchemeSeed: accent,
-      brightness: brightness,
-      textTheme: Typography.material2021(platform: TargetPlatform.android)
-          .black
-          .apply(fontSizeFactor: scale),
-    );
+ThemeData _theme(Color accent, Brightness brightness, double scale) {
+  final base = ThemeData(
+    useMaterial3: true,
+    colorSchemeSeed: accent,
+    brightness: brightness,
+  );
+  final foreground = base.colorScheme.onSurface;
+  return base.copyWith(
+    textTheme: base.textTheme.apply(
+      fontSizeFactor: scale,
+      bodyColor: foreground,
+      displayColor: foreground,
+    ),
+    scaffoldBackgroundColor: base.colorScheme.surface,
+    appBarTheme: AppBarTheme(
+      backgroundColor: base.colorScheme.surface,
+      foregroundColor: foreground,
+    ),
+    cardTheme: CardThemeData(
+      color: base.colorScheme.surfaceContainer,
+      margin: EdgeInsets.zero,
+    ),
+  );
+}
 
 ThemeMode _themeMode(String mode) => switch (mode) {
       'light' => ThemeMode.light,
