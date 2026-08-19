@@ -1,7 +1,8 @@
 # FocusFlow Full-System Production Audit
 
 **Audit date:** 19 August 2026
-**Repository commit under audit:** `7e9f439` plus the final audit fixes before deployment
+**Repository commit under audit:** [`b3ab3b1`](https://github.com/kanganeaditya25-spec/Vertex/commit/b3ab3b15f9b018fa09be7c60800821dc7ddedb5a)
+**Vercel deployment:** `dpl_9aHnfboBK1hiZtzaQg6JTFycst4t` — `READY`
 **Production URL:** [https://vertex-eta-bice.vercel.app/](https://vertex-eta-bice.vercel.app/)
 
 ## Scope
@@ -42,9 +43,9 @@ The audit found that the Flutter authentication UI previously stored only a loca
 
 The FastAPI `/api/v1` routers are tested and valid in the backend environment, but they are not the active public API implementation in the current Express-only Vercel deployment. This is an architecture/deployment boundary, not a hidden success claim. The Flutter client’s active Dashboard sync uses `/api/tasks` and `/api/goals`, while DocumentEngineService now safely rejects non-JSON fallback responses from unavailable `/api/v1` paths instead of crashing or treating HTML as data.
 
-## Production API behavior before final deployment
+## Final production API behavior
 
-The initial audit observed the following expected behavior from the currently deployed Express layer:
+The final smoke audit observed the following behavior from the deployed Express layer:
 
 | Endpoint | Unauthenticated result | Interpretation |
 |---|---:|---|
@@ -52,6 +53,8 @@ The initial audit observed the following expected behavior from the currently de
 | `/api/notifications/vapid-key` | HTTP 200 | Public notification setup endpoint |
 | `/api/tasks`, `/api/goals`, `/api/library`, `/api/reports`, `/api/settings` | HTTP 401 | Correct protected-route behavior without a JWT |
 | `/api/v1/health` | HTTP 401 through Express middleware | FastAPI path is not separately deployed behind the current Express Vercel entrypoint |
+| `/api/auth/signup` with invalid payload | HTTP 400 | Validation behavior is active without creating data |
+| `/api/auth/email-login` with no account | HTTP 400 | Correct no-account response without creating data |
 
 An isolated local Express workflow test then passed for status, sign-up, JWT-protected task access, and invalid email login. During that test, an over-escaped email regex was found and corrected before deployment.
 
@@ -76,4 +79,4 @@ FastAPI emits deprecation warnings for `on_event` startup handlers and Starlette
 
 The audited release is **validated for the tested routes, modules, API contracts, offline repositories, auth workflows, static build, and regression suites**. It is not honest to claim universal 100% bug-free behavior from these checks alone. Formal WCAG certification, cross-browser/device matrix coverage, 60 FPS profiling, multi-device account durability, FastAPI public deployment, and behavioral correctness with real user data remain separate evidence requirements.
 
-The current release should be treated as **production smoke-tested and regression-green with documented boundaries**, not as a mathematically bug-free system.
+The current release should be treated as **production smoke-tested and regression-green with documented boundaries**, not as a mathematically bug-free system. The final smoke run returned HTTP 200 for every registered Flutter route and verified the deployed bundle markers for the authentication gate and Dashboard work cues.

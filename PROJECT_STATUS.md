@@ -4,7 +4,7 @@
 **Repository:** [kanganeaditya25-spec/Vertex](https://github.com/kanganeaditya25-spec/Vertex)
 **Public deployment:** [https://vertex-eta-bice.vercel.app/](https://vertex-eta-bice.vercel.app/)
 **Current branch:** `main`
-**Latest deployed commit:** [`f83d0da`](https://github.com/kanganeaditya25-spec/Vertex/commit/f83d0da2b33a8fd2b1a042b8c8bc6ba479d327d5) — `Redesign FocusFlow around meaningful work and lower cognitive load`
+**Latest deployed commit:** [`b3ab3b1`](https://github.com/kanganeaditya25-spec/Vertex/commit/b3ab3b15f9b018fa09be7c60800821dc7ddedb5a) — `Audit all modules and repair production API authentication`
 
 ## Executive summary
 
@@ -308,10 +308,12 @@ Login and Sign up are available at `/login` and `/signup`, and the root route pr
 Validation passed with **36 Flutter tests**, `flutter analyze` reporting **No issues found**, a successful release build, HTTP 200 for `/`, `/login`, `/signup`, `/search`, and `/tasks`, and bundle markers for `Create local account`, `Continue offline as guest`, `Show password`, and `Sign out`. Vercel deployment `dpl_pngcHY9bEu1Q44nKJXaKfoy8pTYT` for `daf67cd` reported **READY**. The complete record is `docs/FRONTEND_CONTRAST_AUTHENTICATION_FIX.md`.
 
 ## Full-System Production Audit
-**Status:** Completed with reproducible fixes applied; final audit deployment pending this records update.
+**Status:** Completed with reproducible fixes applied and deployed in commit [`b3ab3b1`](https://github.com/kanganeaditya25-spec/Vertex/commit/b3ab3b15f9b018fa09be7c60800821dc7ddedb5a).
 
-The full audit covered all 15 registered Flutter routes (`/`, `/login`, `/signup`, `/tasks`, `/calendar`, `/notes`, `/assistant`, `/organization`, `/analytics`, `/automation`, `/settings`, `/assets`, `/reminders`, `/knowledge-graph`, and `/search`), all FastAPI routers, the active Express production API, authentication, offline repositories, release build, and production route smoke checks. All frontend routes returned HTTP 200 from the deployed SPA shell. The full FastAPI suite passed **52 tests**, the full Flutter suite passed **36 tests**, `flutter analyze` reported **No issues found**, Node syntax checks passed, and the isolated Express status → sign-up → JWT-protected task access → invalid-login workflow passed.
+The full audit covered all 15 registered Flutter routes (`/`, `/login`, `/signup`, `/tasks`, `/calendar`, `/notes`, `/assistant`, `/organization`, `/analytics`, `/automation`, `/settings`, `/assets`, `/reminders`, `/knowledge-graph`, and `/search`), all FastAPI routers, the active Express production API, authentication, offline repositories, release build, and production route smoke checks. All frontend routes returned HTTP 200 from the deployed SPA shell. The full FastAPI suite passed **52 tests**, the full Flutter suite passed **36 tests**, `flutter analyze` reported **No issues found**, Node syntax checks passed, and the isolated Express status → sign-up → JWT-protected task access → invalid-login workflow passed. The final Vercel deployment `dpl_9aHnfboBK1hiZtzaQg6JTFycst4t` reported **READY**.
 
 The audit found and repaired an over-escaped Express email-validation regex, connected the Flutter AuthStore to Express `/api/auth/signup` and `/api/auth/email-login` JWT sessions with offline fallback, and hardened DocumentEngineService against HTML or malformed responses from unavailable `/api/v1` paths. The active Vercel API is the legacy Express `/api` surface; the FastAPI `/api/v1` routers are fully tested but are not separately deployed behind the current Express entrypoint. This boundary is documented in `docs/FULL_SYSTEM_PRODUCTION_AUDIT_2026-08-19.md` rather than represented as a false 100% integration claim.
 
-The repository also reports two moderate production dependency vulnerabilities through `npm audit --omit=dev` (`node-cron` and `uuid` paths), one discontinued Flutter package, and existing FastAPI/Starlette deprecation warnings. These are follow-up hardening items for the Final Production Audit, not runtime test failures.
+The repository also reports two moderate production dependency vulnerabilities through `npm audit --omit=dev` (`node-cron` and `uuid` paths). The available automatic remediation is a breaking upgrade to `uuid@14`, so it was not applied silently. Flutter reports one discontinued package and existing FastAPI/Starlette deprecation warnings. These are follow-up hardening items for the Final Production Audit, not runtime test failures.
+
+Final production semantics are explicit: `/api/auth/status` and the VAPID-key endpoint return HTTP 200; protected `/api/tasks`, `/api/goals`, `/api/library`, `/api/reports`, and `/api/settings` return HTTP 401 without a JWT as designed; invalid auth payloads return validation errors; and all 15 Flutter shell routes return HTTP 200. The active public API remains Express `/api`; FastAPI `/api/v1` is fully tested but is not separately deployed behind the current Express entrypoint.
