@@ -4,7 +4,7 @@
 **Repository:** [kanganeaditya25-spec/Vertex](https://github.com/kanganeaditya25-spec/Vertex)
 **Public deployment:** [https://vertex-eta-bice.vercel.app/](https://vertex-eta-bice.vercel.app/)
 **Current branch:** `main`
-**Latest deployed commit:** [`e6a3a3d`](https://github.com/kanganeaditya25-spec/Vertex/commit/e6a3a3d49881fbd75b63efce52c9b1916c920ccd) — `Implement Module 14 Global Search Command Palette and Knowledge Discovery`
+**Latest deployed commit:** [`f83d0da`](https://github.com/kanganeaditya25-spec/Vertex/commit/f83d0da2b33a8fd2b1a042b8c8bc6ba479d327d5) — `Redesign FocusFlow around meaningful work and lower cognitive load`
 
 ## Executive summary
 
@@ -277,3 +277,14 @@ The Dashboard now routes its search icon to `/search`; **Ctrl+K** and **Cmd+K** 
 Final validation passed with **52 FastAPI tests**, **31 Flutter tests**, `flutter analyze` reporting **No issues found**, a successful Flutter web release build, and `git diff --check`. The production route `https://vertex-eta-bice.vercel.app/search` returned HTTP 200. The deployed bundle contains `Global Search`, `Command Palette`, and `Knowledge discovery`. Vercel deployment `dpl_9j2zhXF9qaCJg7gPCh6ApbaeE2ZV` for commit `e6a3a3d` reported **READY**. The complete acceptance record is `docs/TASK_14_GLOBAL_SEARCH_COMMAND_PALETTE_KNOWLEDGE_DISCOVERY.md`.
 
 The existing architecture limit remains documented: the Flutter shell is served through Express while the FastAPI `/api/v1` service is independently tested, and durable multi-device search synchronization still depends on the future external database/storage deployment step. Module 14 semantic-style and AI-intent modes are deterministic local contracts designed for future local open-source providers rather than claims of paid cloud inference.
+
+## FocusFlow V2 — Meaningful Work Redesign
+**Status:** Implemented, tested, committed, and deployed in commit [`f83d0da`](https://github.com/kanganeaditya25-spec/Vertex/commit/f83d0da2b33a8fd2b1a042b8c8bc6ba479d327d5).
+
+The V2 redesign applies a behavior-first principle: FocusFlow should help users consistently complete meaningful work, reduce cognitive load, build productive habits, and sustain long-term engagement. Research and the current-screen audit are recorded in `docs/PRODUCT_UX_RESEARCH_FOCUSFLOW_V2.md` and `docs/UX_AUDIT_FOCUSFLOW_V2.md`. The research-backed implementation prioritizes a single next action, low-friction capture, realistic workload feedback, project context, explainable progress, and restrained motivation over visual novelty or engagement mechanics.
+
+The Dashboard now opens with a deterministic **Today’s Mission** Coach that selects one overdue, due, high-priority, goal-supporting, or clear next task and explains why. It identifies overloaded plans and uses recovery language instead of guilt. **Quick Capture** persists Tasks, Notes, Reminders, Calendar events, and Projects offline through existing Riverpod controllers. The Dashboard app bar now gives primary space to Global Search, Quick Capture, notifications, and customization, while secondary modules are grouped into a labeled More destinations menu. Project progress cards open the matching project-filtered Tasks route, and Ctrl/Cmd+K continues to open the Command Palette.
+
+Validation passed with **52 FastAPI tests**, **34 Flutter tests**, `flutter analyze` reporting **No issues found**, a successful Flutter web release build, and `git diff --check`. Production smoke checks returned HTTP 200 for `/`, `/tasks`, and `/search`. The deployed Flutter bundle contains `Quick Capture`, `rebalance`, `Command Palette`, and `Focus active`. Vercel deployment `dpl_7wdqa59xWJqBJ9Tb6vUoJj5cv9xz` for commit `f83d0da` reported **READY**. The full acceptance record is `docs/FOCUSFLOW_V2_REDESIGN_ACCEPTANCE.md`.
+
+The redesign does not claim formal WCAG AA certification, measured 60 FPS performance, or behavioral lift without device-level accessibility testing, profiling, and user research. XP, streak pressure, leaderboards, and confetti were intentionally not added because they could optimize engagement rather than meaningful work without evidence and user control.
