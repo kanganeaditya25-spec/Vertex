@@ -26,15 +26,19 @@ class CalendarPage extends ConsumerWidget {
                   .selectDate(DateTime.now()),
               icon: const Icon(Icons.today_rounded)),
           IconButton(
+              tooltip: 'New event',
+              onPressed: () => _showEventEditor(context, ref,
+                  projectId: projectId,
+                  initialDate: calendar.maybeWhen(
+                      data: (state) => state.selectedDate,
+                      orElse: DateTime.now)),
+              icon: const Icon(Icons.add_rounded)),
+          IconButton(
               tooltip: 'Calendar preferences',
               onPressed: () => _showPreferences(context, ref),
               icon: const Icon(Icons.tune_rounded)),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-          onPressed: () => _showEventEditor(context, ref, projectId: projectId),
-          icon: const Icon(Icons.add_rounded),
-          label: const Text('New event')),
       body: calendar.when(
         loading: () => const _CalendarLoading(),
         error: (error, _) => _CalendarError(
@@ -180,11 +184,6 @@ class _WeekView extends ConsumerWidget {
       _SummaryPanel(state: state),
       const SizedBox(height: 12),
       _WeekGrid(state: state, weekStart: weekStart),
-      const SizedBox(height: 12),
-      OutlinedButton.icon(
-          onPressed: () => _showEventEditor(context, ref, projectId: projectId),
-          icon: const Icon(Icons.add_rounded),
-          label: const Text('Schedule an event')),
     ]);
   }
 }
@@ -781,6 +780,32 @@ DateTime _startOfWeek(DateTime date, {int firstDayOfWeek = 1}) {
   return normalized.subtract(Duration(days: distance));
 }
 
+DateTime _roundToQuarter(DateTime value) {
+  final rounded = ((value.minute + 14) ~/ 15) * 15;
+  final base = DateTime(value.year, value.month, value.day, value.hour);
+  return base.add(Duration(minutes: rounded));
+}
+
+Future<DateTime?> _pickScheduleDateTime(BuildContext context,
+    {required DateTime initial}) async {
+  final now = DateTime.now();
+  final firstDate = DateTime(now.year, now.month, now.day);
+  final initialDate = initial.isBefore(firstDate)
+      ? firstDate
+      : DateTime(initial.year, initial.month, initial.day);
+  final date = await showDatePicker(
+    context: context,
+    firstDate: firstDate,
+    lastDate: firstDate.add(const Duration(days: 3650)),
+    initialDate: initialDate,
+  );
+  if (date == null || !context.mounted) return null;
+  final time = await showTimePicker(
+      context: context, initialTime: TimeOfDay.fromDateTime(initial));
+  if (time == null) return null;
+  return DateTime(date.year, date.month, date.day, time.hour, time.minute);
+}
+
 String _formatHour(int minute) {
   final hour = minute ~/ 60;
   final suffix = hour >= 12 ? 'PM' : 'AM';
@@ -803,7 +828,7 @@ Color _eventColor(BuildContext context, CalendarEvent event) =>
     };
 
 Future<void> _showEventEditor(BuildContext context, WidgetRef ref,
-    {String? projectId}) async {
+    {String? projectId, DateTime? initialDate}) async {
   final title = TextEditingController();
   final description = TextEditingController();
   final location = TextEditingController();
@@ -811,9 +836,10 @@ Future<void> _showEventEditor(BuildContext context, WidgetRef ref,
   var priority = 'medium';
   var energy = 'medium';
   var canCreate = false;
-  final start = DateTime.now().add(const Duration(minutes: 30));
-  final normalizedStart = DateTime(start.year, start.month, start.day,
-      start.hour, (start.minute ~/ 15 + 1) * 15);
+  var scheduledStart = _roundToQuarter(initialDate == null
+      ? DateTime.now().add(const Duration(minutes: 30))
+      : DateTime(initialDate.year, initialDate.month, initialDate.day,
+          DateTime.now().hour, DateTime.now().minute));
 
   final created = await showDialog<bool>(
     context: context,
@@ -882,6 +908,17 @@ Future<void> _showEventEditor(BuildContext context, WidgetRef ref,
                   ],
                 ),
                 const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  onPressed: () async {
+                    final picked = await _pickScheduleDateTime(context,
+                        initial: scheduledStart);
+                    if (picked != null) setState(() => scheduledStart = picked);
+                  },
+                  icon: const Icon(Icons.event_available_outlined),
+                  label:
+                      Text(DateFormat.yMMMd().add_jm().format(scheduledStart)),
+                ),
+                const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
                   initialValue: energy,
                   decoration:
@@ -927,8 +964,8 @@ Future<void> _showEventEditor(BuildContext context, WidgetRef ref,
         title: title.text,
         description: description.text,
         location: location.text.isEmpty ? null : location.text,
-        startAt: normalizedStart,
-        endAt: normalizedStart.add(const Duration(minutes: 50)),
+        startAt: scheduledStart,
+        endAt: scheduledStart.add(const Duration(minutes: 50)),
         eventType: eventType,
         priority: priority,
         energyLevel: energy,

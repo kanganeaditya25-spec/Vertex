@@ -3,6 +3,24 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:productivity_dashboard/features/tasks/task_models.dart';
 
 void main() {
+  test('future task deadlines round-trip without date loss', () {
+    final now = DateTime.utc(2026, 8, 19, 9);
+    final deadline = DateTime.utc(2026, 8, 24, 15, 30);
+    final task = TaskModel(
+      id: 'future-task',
+      title: 'Plan next week',
+      deadline: deadline,
+      createdAt: now,
+      updatedAt: now,
+    );
+
+    final decoded = TaskModel.fromJson(task.toJson());
+
+    expect(decoded.deadline, deadline);
+    expect(decoded.deadline!.day, 24);
+    expect(decoded.deadline!.hour, 15);
+  });
+
   test('rich task round-trips with checklist and intelligence metadata', () {
     final now = DateTime.utc(2026, 8, 19, 9);
     final task = TaskModel(

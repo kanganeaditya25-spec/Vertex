@@ -337,3 +337,13 @@ The Dashboard now includes a restrained FocusFlow brand mark and a behavior-focu
 Task completion is connected through the existing Riverpod task controller to the achievement repository. The UI uses light Material 3 surfaces, solid teal/indigo accents, responsive wrapping metrics, and no gradients, decorative effects, leaderboards, telemetry, or paid APIs. The full acceptance record is `docs/ACHIEVEMENT_REWARD_SYSTEM_2026-08-19.md`.
 
 Validation passed with **44 Flutter tests**, **52 FastAPI tests**, `flutter analyze` reporting **No issues found**, Dart formatting, and a successful production Flutter web release build. The release output was synchronized into `public/`. Commit `3e18d75` was pushed to GitHub and deployed to Vercel production as `dpl_D2fxYZKamSwmDi3oFZ4X3yFaFrjH`, reported **READY**, and served through the stable URL. The root route returned HTTP 200 and the live bundle contained `Progress you can feel`, `Streak`, `XP`, `Trophies`, and `FocusFlow`. Module 16 remains paused until the Phase 3 exit record is confirmed.
+
+
+## Future Scheduling and Header Quick Actions — 2026-08-19
+**Status:** Implemented, validated, and release-built; deployment pending.
+
+Task creation now supports an optional date and time up to ten years ahead, preserving the selected value as the task deadline. Calendar event creation now supports a future date/time selector and defaults to the current calendar selection when available. Quick Capture now carries an optional future date into tasks, reminders, and calendar events instead of always using the current moment. The existing week, day, month, and agenda navigation continues to operate on the persisted event dates.
+
+New Task, New Event, New Note, and New Reminder actions now live in their page headers. Duplicate floating creation controls were removed from Tasks, Calendar, Notes, and Reminders. The light minimalist Material 3 design, solid accents, offline persistence, and contextual empty-state actions remain unchanged. Full acceptance record: `docs/FUTURE_SCHEDULING_HEADER_ACTIONS_2026-08-19.md`.
+
+Validation passed with **46 Flutter tests**, **52 FastAPI tests**, `flutter analyze` reporting **No issues found**, `git diff --check`, a future-task serialization regression test, a future-event serialization regression test, a header-action static check, and a successful production Flutter web release build. The release output is synchronized into `public/`; GitHub and Vercel deployment remain the final gates. Module 16 remains paused until the Phase 3 exit record is confirmed.

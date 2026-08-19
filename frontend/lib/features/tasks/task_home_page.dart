@@ -27,11 +27,6 @@ class TaskHomePage extends ConsumerWidget {
               icon: const Icon(Icons.add_task_rounded)),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showTaskEditor(context, ref),
-        icon: const Icon(Icons.add_rounded),
-        label: const Text('Quick add'),
-      ),
       body: taskState.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => _ErrorState(
@@ -398,6 +393,7 @@ Future<void> _showTaskEditor(BuildContext context, WidgetRef ref,
   final titleController = TextEditingController();
   final descriptionController = TextEditingController();
   var priority = 'medium';
+  DateTime? deadline;
   var canCreate = false;
 
   final created = await showDialog<bool>(
@@ -428,6 +424,27 @@ Future<void> _showTaskEditor(BuildContext context, WidgetRef ref,
                       labelText: 'Context or next action',
                       border: OutlineInputBorder()),
                 ),
+                const SizedBox(height: 12),
+                Row(children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () async {
+                        final picked =
+                            await _pickDateTime(context, initial: deadline);
+                        if (picked != null) setState(() => deadline = picked);
+                      },
+                      icon: const Icon(Icons.event_available_outlined),
+                      label: Text(deadline == null
+                          ? 'Schedule for a date'
+                          : DateFormat.yMMMd().add_jm().format(deadline!)),
+                    ),
+                  ),
+                  if (deadline != null)
+                    IconButton(
+                        tooltip: 'Clear scheduled date',
+                        onPressed: () => setState(() => deadline = null),
+                        icon: const Icon(Icons.clear_rounded)),
+                ]),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
                   initialValue: priority,
@@ -469,6 +486,7 @@ Future<void> _showTaskEditor(BuildContext context, WidgetRef ref,
         title: titleController.text,
         description: descriptionController.text,
         priority: priority,
+        deadline: deadline,
         projectId: projectId);
   }
   titleController.dispose();
@@ -542,6 +560,28 @@ void _handleAction(
     case 'delete':
       controller.deleteTask(task);
   }
+}
+
+Future<DateTime?> _pickDateTime(BuildContext context,
+    {DateTime? initial}) async {
+  final now = DateTime.now();
+  final firstDate = DateTime(now.year, now.month, now.day);
+  final initialDate = initial == null || initial.isBefore(firstDate)
+      ? firstDate
+      : DateTime(initial.year, initial.month, initial.day);
+  final date = await showDatePicker(
+    context: context,
+    firstDate: firstDate,
+    lastDate: firstDate.add(const Duration(days: 3650)),
+    initialDate: initialDate,
+  );
+  if (date == null || !context.mounted) return null;
+  final time = await showTimePicker(
+      context: context,
+      initialTime:
+          initial == null ? TimeOfDay.now() : TimeOfDay.fromDateTime(initial));
+  if (time == null) return null;
+  return DateTime(date.year, date.month, date.day, time.hour, time.minute);
 }
 
 void _showSortMenu(BuildContext context, WidgetRef ref) {

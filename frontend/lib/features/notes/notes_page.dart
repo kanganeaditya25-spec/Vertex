@@ -25,11 +25,6 @@ class NotesPage extends ConsumerWidget {
               icon: const Icon(Icons.note_add_rounded)),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-          onPressed: () =>
-              ref.read(notesControllerProvider.notifier).createNote(),
-          icon: const Icon(Icons.add_rounded),
-          label: const Text('New note')),
       body: notes.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => _NotesError(

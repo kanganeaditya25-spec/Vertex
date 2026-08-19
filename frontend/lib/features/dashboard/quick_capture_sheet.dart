@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import '../calendar/calendar_providers.dart';
 import '../notes/notes_providers.dart';
@@ -21,6 +22,7 @@ class _QuickCaptureSheetState extends ConsumerState<QuickCaptureSheet> {
   late final TextEditingController _textController;
   late String _type;
   bool _saving = false;
+  DateTime? _scheduledAt;
 
   static const _types = ['Task', 'Note', 'Reminder', 'Calendar', 'Project'];
 
@@ -94,6 +96,29 @@ class _QuickCaptureSheetState extends ConsumerState<QuickCaptureSheet> {
                   border: const OutlineInputBorder(),
                 ),
               ),
+              if (_type == 'Task' ||
+                  _type == 'Reminder' ||
+                  _type == 'Calendar') ...[
+                const SizedBox(height: 12),
+                Row(children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: _saving ? null : _pickSchedule,
+                      icon: const Icon(Icons.event_available_outlined),
+                      label: Text(_scheduledAt == null
+                          ? 'Schedule for a date'
+                          : DateFormat.yMMMd().add_jm().format(_scheduledAt!)),
+                    ),
+                  ),
+                  if (_scheduledAt != null)
+                    IconButton(
+                        tooltip: 'Clear scheduled date',
+                        onPressed: _saving
+                            ? null
+                            : () => setState(() => _scheduledAt = null),
+                        icon: const Icon(Icons.clear_rounded)),
+                ]),
+              ],
               const SizedBox(height: 16),
               SizedBox(
                 width: double.infinity,
@@ -128,7 +153,7 @@ class _QuickCaptureSheetState extends ConsumerState<QuickCaptureSheet> {
           await ref.read(taskControllerProvider.future);
           await ref
               .read(taskControllerProvider.notifier)
-              .createTask(title: title);
+              .createTask(title: title, deadline: _scheduledAt);
         case 'Note':
           await ref.read(notesControllerProvider.future);
           await ref
@@ -138,11 +163,13 @@ class _QuickCaptureSheetState extends ConsumerState<QuickCaptureSheet> {
           await ref.read(reminderControllerProvider.future);
           await ref.read(reminderControllerProvider.notifier).create(
               title: title,
-              nextTriggerAt: DateTime.now().add(const Duration(hours: 1)),
+              nextTriggerAt:
+                  _scheduledAt ?? DateTime.now().add(const Duration(hours: 1)),
               linkedModule: 'quick_capture');
         case 'Calendar':
           await ref.read(calendarControllerProvider.future);
-          final start = DateTime.now().add(const Duration(minutes: 30));
+          final start =
+              _scheduledAt ?? DateTime.now().add(const Duration(minutes: 30));
           await ref.read(calendarControllerProvider.notifier).createEvent(
               title: title,
               startAt: start,
@@ -161,6 +188,27 @@ class _QuickCaptureSheetState extends ConsumerState<QuickCaptureSheet> {
       }
     } finally {
       if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  Future<void> _pickSchedule() async {
+    final now = DateTime.now();
+    final firstDate = DateTime(now.year, now.month, now.day);
+    final current = _scheduledAt ?? now.add(const Duration(minutes: 30));
+    final date = await showDatePicker(
+      context: context,
+      firstDate: firstDate,
+      lastDate: firstDate.add(const Duration(days: 3650)),
+      initialDate: current.isBefore(firstDate)
+          ? firstDate
+          : DateTime(current.year, current.month, current.day),
+    );
+    if (date == null || !mounted) return;
+    final time = await showTimePicker(
+        context: context, initialTime: TimeOfDay.fromDateTime(current));
+    if (time != null && mounted) {
+      setState(() => _scheduledAt =
+          DateTime(date.year, date.month, date.day, time.hour, time.minute));
     }
   }
 }

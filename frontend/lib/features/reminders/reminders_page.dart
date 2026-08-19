@@ -34,6 +34,11 @@ class _RemindersPageState extends ConsumerState<RemindersPage> {
               icon: const Icon(Icons.refresh_rounded),
               tooltip: 'Refresh reminders'),
           IconButton(
+              onPressed: () =>
+                  _showCreateDialog(context, projectId: widget.projectId),
+              icon: const Icon(Icons.add_alarm_rounded),
+              tooltip: 'New reminder'),
+          IconButton(
               onPressed: () => _showPreferences(context),
               icon: const Icon(Icons.tune_rounded),
               tooltip: 'Reminder preferences'),
@@ -46,11 +51,6 @@ class _RemindersPageState extends ConsumerState<RemindersPage> {
             Center(child: Text('Unable to load reminders: $error')),
         data: _buildContent,
       ),
-      floatingActionButton: FloatingActionButton.extended(
-          onPressed: () =>
-              _showCreateDialog(context, projectId: widget.projectId),
-          icon: const Icon(Icons.add_alarm_rounded),
-          label: const Text('New reminder')),
     );
   }
 
