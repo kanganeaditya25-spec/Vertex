@@ -4,7 +4,7 @@
 **Repository:** [kanganeaditya25-spec/Vertex](https://github.com/kanganeaditya25-spec/Vertex)
 **Public deployment:** [https://vertex-eta-bice.vercel.app/](https://vertex-eta-bice.vercel.app/)
 **Current branch:** `main`
-**Latest deployed commit:** `61cbf37` — `Implement Module 10 settings personalization system configuration`
+**Latest deployed commit:** `a5551ec` — `Implement Module 11 asset library and knowledge storage`
 
 ## Executive summary
 
@@ -222,3 +222,7 @@ Final verification passed with **19 FastAPI tests**, **14 Flutter tests**, clean
 ## Module 10 — Settings, Personalization & System Configuration
 Module 10 is implemented and published. The FastAPI backend adds typed settings snapshots, backups, search, privacy actions, storage statistics, AI health metadata, developer diagnostics, and router registration. The Flutter client adds the `/settings` route, all 24 required categories, immediate theme/accent/font-scale personalization, offline SharedPreferences persistence, local backup creation/restoration, privacy confirmations, settings export, storage overview, developer mode, and About information. The implementation preserves flat Material 3 surfaces, solid accents, no gradients, and no telemetry by default.
 Final verification passed with **22 FastAPI tests**, **14 Flutter tests**, clean Flutter analysis, a successful release web build, a synchronized `public/` shell, GitHub push at commit `61cbf37`, and a Vercel production deployment reported `READY`. The live `/settings` route returned HTTP 200. The full acceptance record is `docs/TASK_10_SETTINGS_PERSONALIZATION_SYSTEM_CONFIG.md`; live verification notes are in `docs/live_module10_verification.md`.
+
+## Module 11 — Asset Library & Knowledge Storage
+Module 11 is implemented as the centralized offline-first Asset Library and Knowledge Storage layer. The FastAPI backend adds asset, folder, collection, version, and sync-queue models; deduplicated multipart storage; URL resources; search and filters; bulk operations; cross-module links; OCR through Tesseract; ZIP export manifests; and storage analytics. The Flutter client adds the `/assets` route, SHA-256 local duplicate detection, SharedPreferences persistence, local content retention with an explicit browser-safe threshold, URL capture, responsive library navigation, grid/list views, preview dialogs, per-asset actions, bulk actions, and direct Dashboard/Organization navigation.
+Final verification passed with **27 FastAPI tests**, **17 Flutter tests**, clean Flutter analysis, a successful release web build, synchronized `public/` shell, GitHub push at commit `a5551ec`, and a Vercel production deployment reported `READY`. The live `/assets/` route returned HTTP 200 and opened in the connected browser. The complete acceptance record is `docs/TASK_11_ASSET_LIBRARY_KNOWLEDGE_STORAGE.md`; live verification notes are in `docs/live_module11_verification.md`. The FastAPI Asset API is committed and tested at `/api/v1/assets`; connecting the Python service behind the existing Express/Vercel deployment remains a deployment-architecture follow-up.
