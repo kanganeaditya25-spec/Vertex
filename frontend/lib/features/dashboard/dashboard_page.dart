@@ -1,5 +1,6 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -72,139 +73,159 @@ class _DashboardView extends ConsumerWidget {
     final topTasks = [...todayTasks]..sort(_comparePriority);
     final visible = state.preferences.visibleWidgets.toSet();
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('FocusFlow AI'),
-        actions: [
-          IconButton(
-            tooltip: 'Open Analytics & Insights',
-            onPressed: () => context.push('/analytics'),
-            icon: const Icon(Icons.insights_rounded),
+    return Shortcuts(
+      shortcuts: <LogicalKeySet, Intent>{
+        LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.keyK):
+            const _OpenSearchIntent(),
+        LogicalKeySet(LogicalKeyboardKey.meta, LogicalKeyboardKey.keyK):
+            const _OpenSearchIntent(),
+      },
+      child: Actions(
+        actions: <Type, Action<Intent>>{
+          _OpenSearchIntent: CallbackAction<_OpenSearchIntent>(onInvoke: (_) {
+            context.push('/search?palette=1');
+            return null;
+          }),
+        },
+        child: Scaffold(
+          appBar: AppBar(
+            title: const Text('FocusFlow AI'),
+            actions: [
+              IconButton(
+                tooltip: 'Open Analytics & Insights',
+                onPressed: () => context.push('/analytics'),
+                icon: const Icon(Icons.insights_rounded),
+              ),
+              IconButton(
+                tooltip: 'Open Asset Library',
+                onPressed: () => context.push('/assets'),
+                icon: const Icon(Icons.folder_copy_outlined),
+              ),
+              IconButton(
+                tooltip: 'Open Reminder Center',
+                onPressed: () => context.push('/reminders'),
+                icon: const Icon(Icons.notifications_active_outlined),
+              ),
+              IconButton(
+                tooltip: 'Open Knowledge Explorer',
+                onPressed: () => context.push('/knowledge-graph'),
+                icon: const Icon(Icons.hub_outlined),
+              ),
+              IconButton(
+                tooltip: 'Open Settings & Personalization',
+                onPressed: () => context.push('/settings'),
+                icon: const Icon(Icons.settings_outlined),
+              ),
+              IconButton(
+                tooltip: 'Open Automation Engine',
+                onPressed: () => context.push('/automation'),
+                icon: const Icon(Icons.account_tree_outlined),
+              ),
+              IconButton(
+                tooltip: 'Open Workspaces & Projects',
+                onPressed: () => context.push('/organization'),
+                icon: const Icon(Icons.account_tree_rounded),
+              ),
+              IconButton(
+                tooltip: 'Open AI Executive Assistant',
+                onPressed: () => context.push('/assistant'),
+                icon: const Icon(Icons.auto_awesome_rounded),
+              ),
+              IconButton(
+                tooltip: 'Open Second Brain Notes',
+                onPressed: () => context.push('/notes'),
+                icon: const Icon(Icons.menu_book_rounded),
+              ),
+              IconButton(
+                tooltip: 'Open Calendar & Time Intelligence',
+                onPressed: () => context.push('/calendar'),
+                icon: const Icon(Icons.calendar_month_rounded),
+              ),
+              IconButton(
+                tooltip: 'Open Smart Tasks',
+                onPressed: () => context.push('/tasks'),
+                icon: const Icon(Icons.checklist_rounded),
+              ),
+              IconButton(
+                tooltip: 'Open Global Search',
+                onPressed: () => context.push('/search'),
+                icon: const Icon(Icons.search),
+              ),
+              IconButton(
+                tooltip: 'Notifications',
+                onPressed: () => _showNotifications(context),
+                icon: const Badge(
+                  label: Text('0'),
+                  child: Icon(Icons.notifications_none),
+                ),
+              ),
+              IconButton(
+                tooltip: 'Customize dashboard',
+                onPressed: () => _showCustomization(context, state, controller),
+                icon: const Icon(Icons.dashboard_customize_outlined),
+              ),
+            ],
           ),
-          IconButton(
-            tooltip: 'Open Asset Library',
-            onPressed: () => context.push('/assets'),
-            icon: const Icon(Icons.folder_copy_outlined),
-          ),
-          IconButton(
-            tooltip: 'Open Reminder Center',
-            onPressed: () => context.push('/reminders'),
-            icon: const Icon(Icons.notifications_active_outlined),
-          ),
-          IconButton(
-            tooltip: 'Open Knowledge Explorer',
-            onPressed: () => context.push('/knowledge-graph'),
-            icon: const Icon(Icons.hub_outlined),
-          ),
-          IconButton(
-            tooltip: 'Open Settings & Personalization',
-            onPressed: () => context.push('/settings'),
-            icon: const Icon(Icons.settings_outlined),
-          ),
-          IconButton(
-            tooltip: 'Open Automation Engine',
-            onPressed: () => context.push('/automation'),
-            icon: const Icon(Icons.account_tree_outlined),
-          ),
-          IconButton(
-            tooltip: 'Open Workspaces & Projects',
-            onPressed: () => context.push('/organization'),
-            icon: const Icon(Icons.account_tree_rounded),
-          ),
-          IconButton(
-            tooltip: 'Open AI Executive Assistant',
-            onPressed: () => context.push('/assistant'),
-            icon: const Icon(Icons.auto_awesome_rounded),
-          ),
-          IconButton(
-            tooltip: 'Open Second Brain Notes',
-            onPressed: () => context.push('/notes'),
-            icon: const Icon(Icons.menu_book_rounded),
-          ),
-          IconButton(
-            tooltip: 'Open Calendar & Time Intelligence',
-            onPressed: () => context.push('/calendar'),
-            icon: const Icon(Icons.calendar_month_rounded),
-          ),
-          IconButton(
-            tooltip: 'Open Smart Tasks',
-            onPressed: () => context.push('/tasks'),
-            icon: const Icon(Icons.checklist_rounded),
-          ),
-          IconButton(
-            tooltip: 'Search your workspace',
-            onPressed: () => _showSearch(context),
-            icon: const Icon(Icons.search),
-          ),
-          IconButton(
-            tooltip: 'Notifications',
-            onPressed: () => _showNotifications(context),
-            icon: const Badge(
-              label: Text('0'),
-              child: Icon(Icons.notifications_none),
-            ),
-          ),
-          IconButton(
-            tooltip: 'Customize dashboard',
-            onPressed: () => _showCustomization(context, state, controller),
-            icon: const Icon(Icons.dashboard_customize_outlined),
-          ),
-        ],
-      ),
-      body: RefreshIndicator(
-        onRefresh: controller.refresh,
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
-          children: [
-            _GreetingHeader(
-              userName: snapshot.userName,
-              activeGoal: activeGoals.isEmpty ? null : activeGoals.first,
-            ),
-            const SizedBox(height: 20),
-            _ResponsiveGrid(
-              columns: isDesktop ? 2 : 1,
+          body: RefreshIndicator(
+            onRefresh: controller.refresh,
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
               children: [
-                if (visible.contains('today_overview'))
-                  _TodayOverviewCard(
-                    tasksRemaining: pendingTasks,
-                    completedTasks: completedTasks,
-                    meetings: snapshot.events.length,
-                    focusSeconds: snapshot.focus.todaySeconds,
-                    progress: todayTasks.isEmpty
-                        ? 0
-                        : completedTasks / todayTasks.length,
-                  ),
-                if (visible.contains('ai_priority'))
-                  _PriorityCard(tasks: topTasks.take(3).toList()),
+                _GreetingHeader(
+                  userName: snapshot.userName,
+                  activeGoal: activeGoals.isEmpty ? null : activeGoals.first,
+                ),
+                const SizedBox(height: 20),
+                _ResponsiveGrid(
+                  columns: isDesktop ? 2 : 1,
+                  children: [
+                    if (visible.contains('today_overview'))
+                      _TodayOverviewCard(
+                        tasksRemaining: pendingTasks,
+                        completedTasks: completedTasks,
+                        meetings: snapshot.events.length,
+                        focusSeconds: snapshot.focus.todaySeconds,
+                        progress: todayTasks.isEmpty
+                            ? 0
+                            : completedTasks / todayTasks.length,
+                      ),
+                    if (visible.contains('ai_priority'))
+                      _PriorityCard(tasks: topTasks.take(3).toList()),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                if (visible.contains('focus'))
+                  _FocusCard(focus: snapshot.focus, controller: controller),
+                const SizedBox(height: 16),
+                _QuickActions(controller: controller),
+                const SizedBox(height: 16),
+                _ResponsiveGrid(
+                  columns: isDesktop ? 2 : 1,
+                  children: [
+                    if (visible.contains('calendar'))
+                      _CalendarCard(events: snapshot.events),
+                    if (visible.contains('recent_notes'))
+                      _RecentNotesCard(notes: snapshot.notes),
+                    if (visible.contains('projects'))
+                      _ProjectsCard(projects: snapshot.projects),
+                    if (visible.contains('habits'))
+                      _HabitsCard(habits: snapshot.habits),
+                    if (visible.contains('analytics'))
+                      _AnalyticsCard(tasks: todayTasks, focus: snapshot.focus),
+                    _AiInsightCard(available: state.localAiAvailable),
+                  ],
+                ),
               ],
             ),
-            const SizedBox(height: 16),
-            if (visible.contains('focus'))
-              _FocusCard(focus: snapshot.focus, controller: controller),
-            const SizedBox(height: 16),
-            _QuickActions(controller: controller),
-            const SizedBox(height: 16),
-            _ResponsiveGrid(
-              columns: isDesktop ? 2 : 1,
-              children: [
-                if (visible.contains('calendar'))
-                  _CalendarCard(events: snapshot.events),
-                if (visible.contains('recent_notes'))
-                  _RecentNotesCard(notes: snapshot.notes),
-                if (visible.contains('projects'))
-                  _ProjectsCard(projects: snapshot.projects),
-                if (visible.contains('habits'))
-                  _HabitsCard(habits: snapshot.habits),
-                if (visible.contains('analytics'))
-                  _AnalyticsCard(tasks: todayTasks, focus: snapshot.focus),
-                _AiInsightCard(available: state.localAiAvailable),
-              ],
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
+}
+
+class _OpenSearchIntent extends Intent {
+  const _OpenSearchIntent();
 }
 
 class _GreetingHeader extends StatelessWidget {
@@ -945,25 +966,6 @@ String _formatTimer(int seconds) {
   final minutes = (seconds % 3600) ~/ 60;
   final remaining = seconds % 60;
   return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${remaining.toString().padLeft(2, '0')}';
-}
-
-void _showSearch(BuildContext context) {
-  showDialog<void>(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: const Text('Search workspace'),
-      content: const TextField(
-        autofocus: true,
-        decoration: InputDecoration(hintText: 'Tasks, notes, projects, files'),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Close'),
-        ),
-      ],
-    ),
-  );
 }
 
 void _showNotifications(BuildContext context) {

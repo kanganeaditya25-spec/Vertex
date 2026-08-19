@@ -12,6 +12,7 @@ import '../features/tasks/task_home_page.dart';
 import '../features/settings/settings_page.dart';
 import '../features/reminders/reminders_page.dart';
 import '../features/knowledge_graph/knowledge_graph_page.dart';
+import '../features/search/global_search_page.dart';
 
 final GoRouter appRouter = GoRouter(
   routes: [
@@ -67,6 +68,13 @@ final GoRouter appRouter = GoRouter(
       path: '/knowledge-graph',
       builder: (context, state) => KnowledgeGraphPage(
         workspaceId: state.uri.queryParameters['workspace'],
+      ),
+    ),
+    GoRoute(
+      path: '/search',
+      builder: (context, state) => GlobalSearchPage(
+        palette: state.uri.queryParameters['palette'] == '1',
+        workspaceId: state.uri.queryParameters['workspace'] ?? '',
       ),
     ),
   ],

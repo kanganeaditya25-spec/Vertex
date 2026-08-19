@@ -12,6 +12,7 @@ from app.api.settings import router as settings_router
 from app.api.assets import router as assets_router
 from app.api.core import router as core_router
 from app.api.graph import router as graph_router
+from app.api.search import router as search_router
 from app.api.reminders import router as reminders_router
 from app.core.ai import ai_engine as _ai_engine
 from app.core.configuration.settings import core_settings
@@ -35,6 +36,7 @@ from app.settings import models as _settings_models
 from app.assets import models as _asset_models
 from app.reminders import models as _reminder_models
 from app.graph import models as _graph_models
+from app.search import models as _search_models
 
 
 configure_logging()
@@ -58,6 +60,7 @@ app.include_router(settings_router, prefix="/api/v1")
 app.include_router(assets_router, prefix="/api/v1")
 app.include_router(core_router, prefix="/api/v1")
 app.include_router(graph_router, prefix="/api/v1")
+app.include_router(search_router, prefix="/api/v1")
 app.include_router(reminders_router, prefix="/api/v1")
 Base.metadata.create_all(bind=engine)
 ensure_additive_schema(engine)
@@ -90,4 +93,5 @@ def root() -> dict[str, str]:
         "assets": "/api/v1/assets",
         "reminders": "/api/v1/reminders",
         "knowledge_graph": "/api/v1/graph",
+        "global_search": "/api/v1/search",
     }
