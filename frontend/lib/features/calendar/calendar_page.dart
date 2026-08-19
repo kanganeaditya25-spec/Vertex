@@ -105,7 +105,8 @@ Widget _viewFor(BuildContext context, WidgetRef ref, CalendarState state,
     switch (state.view) {
       'day' => _DayView(state: state, projectId: projectId),
       'month' => _MonthView(state: state, projectId: projectId),
-      _ => _AgendaView(state: state, projectId: projectId),
+      'agenda' => _AgendaView(state: state, projectId: projectId),
+      _ => _WeekView(state: state, projectId: projectId),
     };
 
 class _ViewSwitcher extends ConsumerWidget {
@@ -117,7 +118,7 @@ class _ViewSwitcher extends ConsumerWidget {
     return SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Row(
-            children: ['agenda', 'day', 'month']
+            children: ['week', 'day', 'month', 'agenda']
                 .map((view) => Padding(
                     padding: const EdgeInsets.only(right: 8),
                     child: ChoiceChip(
@@ -160,6 +161,30 @@ class _AgendaView extends ConsumerWidget {
         ...events.map((event) => Padding(
             padding: const EdgeInsets.only(bottom: 10),
             child: _EventCard(event: event))),
+    ]);
+  }
+}
+
+class _WeekView extends ConsumerWidget {
+  const _WeekView({required this.state, this.projectId});
+  final CalendarState state;
+  final String? projectId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final weekStart = _startOfWeek(state.selectedDate,
+        firstDayOfWeek: state.preferences.firstDayOfWeek);
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      _WeekNavigator(state: state, weekStart: weekStart),
+      const SizedBox(height: 12),
+      _SummaryPanel(state: state),
+      const SizedBox(height: 12),
+      _WeekGrid(state: state, weekStart: weekStart),
+      const SizedBox(height: 12),
+      OutlinedButton.icon(
+          onPressed: () => _showEventEditor(context, ref, projectId: projectId),
+          icon: const Icon(Icons.add_rounded),
+          label: const Text('Schedule an event')),
     ]);
   }
 }
@@ -214,6 +239,239 @@ class _MonthView extends ConsumerWidget {
                 _showEventEditor(context, ref, projectId: projectId),
             message: 'No events on the selected date.'),
     ]);
+  }
+}
+
+class _WeekNavigator extends ConsumerWidget {
+  const _WeekNavigator({required this.state, required this.weekStart});
+  final CalendarState state;
+  final DateTime weekStart;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final controller = ref.read(calendarControllerProvider.notifier);
+    final weekEnd = weekStart.add(const Duration(days: 6));
+    final range = weekStart.month == weekEnd.month
+        ? '${DateFormat.MMMd().format(weekStart)}–${DateFormat.d().format(weekEnd)}, ${weekEnd.year}'
+        : '${DateFormat.MMMd().format(weekStart)}–${DateFormat.MMMd().format(weekEnd)}, ${weekEnd.year}';
+    return Row(children: [
+      IconButton(
+          tooltip: 'Previous week',
+          onPressed: () => controller
+              .selectDate(state.selectedDate.subtract(const Duration(days: 7))),
+          icon: const Icon(Icons.chevron_left_rounded)),
+      IconButton(
+          tooltip: 'Next week',
+          onPressed: () => controller
+              .selectDate(state.selectedDate.add(const Duration(days: 7))),
+          icon: const Icon(Icons.chevron_right_rounded)),
+      const SizedBox(width: 4),
+      OutlinedButton(
+          onPressed: () => controller.selectDate(DateTime.now()),
+          child: const Text('Today')),
+      Expanded(
+          child: Center(
+              child: Text(range,
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleLarge
+                      ?.copyWith(fontWeight: FontWeight.w800)))),
+    ]);
+  }
+}
+
+class _WeekGrid extends ConsumerWidget {
+  const _WeekGrid({required this.state, required this.weekStart});
+  final CalendarState state;
+  final DateTime weekStart;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final controller = ref.read(calendarControllerProvider.notifier);
+    final startMinute = state.preferences.workStartMinute;
+    final endMinute = state.preferences.workEndMinute;
+    final rows = <Widget>[];
+    for (var minute = startMinute; minute < endMinute; minute += 60) {
+      rows.add(_WeekHourRow(
+          state: state,
+          weekStart: weekStart,
+          minute: minute,
+          onSelectDate: controller.selectDate));
+    }
+    return Card(
+      elevation: 0,
+      clipBehavior: Clip.antiAlias,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minWidth: 820),
+          child: Column(children: [
+            _WeekHeader(
+                state: state,
+                weekStart: weekStart,
+                onSelectDate: controller.selectDate),
+            ...rows,
+          ]),
+        ),
+      ),
+    );
+  }
+}
+
+class _WeekHeader extends StatelessWidget {
+  const _WeekHeader(
+      {required this.state,
+      required this.weekStart,
+      required this.onSelectDate});
+  final CalendarState state;
+  final DateTime weekStart;
+  final ValueChanged<DateTime> onSelectDate;
+
+  @override
+  Widget build(BuildContext context) => Row(children: [
+        const SizedBox(width: 62, child: Center(child: Text(''))),
+        for (var index = 0; index < 7; index++)
+          Expanded(
+              child: InkWell(
+            onTap: () => onSelectDate(weekStart.add(Duration(days: index))),
+            child: Container(
+              height: 64,
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              decoration: BoxDecoration(
+                  color: _sameDate(state.selectedDate,
+                          weekStart.add(Duration(days: index)))
+                      ? Theme.of(context).colorScheme.primaryContainer
+                      : Colors.transparent,
+                  border: const Border(
+                      bottom: BorderSide(color: Color(0xFFE2EAE5)))),
+              child: Column(children: [
+                Text(
+                    DateFormat.E().format(weekStart.add(Duration(days: index))),
+                    style: Theme.of(context).textTheme.labelMedium),
+                const SizedBox(height: 4),
+                Text(
+                    DateFormat.d().format(weekStart.add(Duration(days: index))),
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleMedium
+                        ?.copyWith(fontWeight: FontWeight.w800)),
+              ]),
+            ),
+          )),
+      ]);
+}
+
+class _WeekHourRow extends StatelessWidget {
+  const _WeekHourRow(
+      {required this.state,
+      required this.weekStart,
+      required this.minute,
+      required this.onSelectDate});
+  final CalendarState state;
+  final DateTime weekStart;
+  final int minute;
+  final ValueChanged<DateTime> onSelectDate;
+
+  @override
+  Widget build(BuildContext context) => SizedBox(
+        height: 74,
+        child: Row(children: [
+          SizedBox(
+              width: 62,
+              child: Padding(
+                  padding: const EdgeInsets.only(top: 6, right: 8),
+                  child: Text(_formatHour(minute),
+                      textAlign: TextAlign.right,
+                      style: Theme.of(context).textTheme.labelSmall))),
+          for (var index = 0; index < 7; index++)
+            Expanded(
+                child: _WeekDayCell(
+                    state: state,
+                    day: weekStart.add(Duration(days: index)),
+                    minute: minute,
+                    onSelectDate: onSelectDate)),
+        ]),
+      );
+}
+
+class _WeekDayCell extends ConsumerWidget {
+  const _WeekDayCell(
+      {required this.state,
+      required this.day,
+      required this.minute,
+      required this.onSelectDate});
+  final CalendarState state;
+  final DateTime day;
+  final int minute;
+  final ValueChanged<DateTime> onSelectDate;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final cellEvents = state.visibleEvents.where((event) {
+      if (!_sameDate(event.startAt, day)) return false;
+      final start = event.startAt.hour * 60 + event.startAt.minute;
+      final effectiveStart = start < state.preferences.workStartMinute
+          ? state.preferences.workStartMinute
+          : start;
+      return effectiveStart >= minute && effectiveStart < minute + 60;
+    }).toList();
+    return InkWell(
+      onTap: () => onSelectDate(day),
+      child: Container(
+        decoration: BoxDecoration(
+            color: _sameDate(state.selectedDate, day)
+                ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.035)
+                : Colors.transparent,
+            border: const Border(
+                left: BorderSide(color: Color(0xFFE2EAE5)),
+                top: BorderSide(color: Color(0xFFE2EAE5)))),
+        padding: const EdgeInsets.all(2),
+        child: Stack(children: [
+          for (final event in cellEvents)
+            Positioned(
+                top: ((event.startAt.minute / 60) * 70).clamp(0, 70),
+                left: 2,
+                right: 2,
+                height: (event.duration.inMinutes / 60 * 70)
+                    .clamp(30, 138)
+                    .toDouble(),
+                child: _WeekEventChip(event: event)),
+        ]),
+      ),
+    );
+  }
+}
+
+class _WeekEventChip extends ConsumerWidget {
+  const _WeekEventChip({required this.event});
+  final CalendarEvent event;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final color = _eventColor(context, event);
+    return Semantics(
+      label:
+          '${event.title}, ${DateFormat.jm().format(event.startAt)} to ${DateFormat.jm().format(event.endAt)}',
+      button: true,
+      child: InkWell(
+        onTap: () => _showEventDetails(context, ref, event),
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.16),
+              border: Border(left: BorderSide(color: color, width: 3)),
+              borderRadius: BorderRadius.circular(8)),
+          child: Text(event.title,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context)
+                  .textTheme
+                  .labelSmall
+                  ?.copyWith(fontWeight: FontWeight.w700)),
+        ),
+      ),
+    );
   }
 }
 
@@ -516,6 +774,24 @@ class _CalendarError extends StatelessWidget {
             FilledButton(onPressed: retry, child: const Text('Retry'))
           ])));
 }
+
+DateTime _startOfWeek(DateTime date, {int firstDayOfWeek = 1}) {
+  final normalized = DateTime(date.year, date.month, date.day);
+  final distance = (normalized.weekday - firstDayOfWeek) % 7;
+  return normalized.subtract(Duration(days: distance));
+}
+
+String _formatHour(int minute) {
+  final hour = minute ~/ 60;
+  final suffix = hour >= 12 ? 'PM' : 'AM';
+  final display = hour % 12 == 0 ? 12 : hour % 12;
+  return '$display $suffix';
+}
+
+bool _sameDate(DateTime first, DateTime second) =>
+    first.year == second.year &&
+    first.month == second.month &&
+    first.day == second.day;
 
 Color _eventColor(BuildContext context, CalendarEvent event) =>
     switch (event.eventType) {

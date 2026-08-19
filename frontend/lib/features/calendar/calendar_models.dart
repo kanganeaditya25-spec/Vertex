@@ -227,7 +227,7 @@ class CalendarEvent {
 
 class CalendarPreferences {
   const CalendarPreferences(
-      {this.defaultView = 'agenda',
+      {this.defaultView = 'week',
       this.workStartMinute = 540,
       this.workEndMinute = 1020,
       this.firstDayOfWeek = 1,

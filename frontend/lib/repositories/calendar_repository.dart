@@ -31,8 +31,11 @@ class CalendarRepository {
     final encoded = _preferences.getString(_preferencesKey);
     if (encoded == null || encoded.isEmpty) return const CalendarPreferences();
     try {
-      return CalendarPreferences.fromJson(
+      final preferences = CalendarPreferences.fromJson(
           jsonDecode(encoded) as Map<String, dynamic>);
+      return preferences.defaultView == 'agenda'
+          ? preferences.copyWith(defaultView: 'week')
+          : preferences;
     } on Object {
       return const CalendarPreferences();
     }
