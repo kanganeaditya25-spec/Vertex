@@ -6,7 +6,8 @@ import 'task_models.dart';
 import 'task_providers.dart';
 
 class TaskHomePage extends ConsumerWidget {
-  const TaskHomePage({super.key});
+  const TaskHomePage({super.key, this.projectId});
+  final String? projectId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -21,7 +22,8 @@ class TaskHomePage extends ConsumerWidget {
               icon: const Icon(Icons.sort_rounded)),
           IconButton(
               tooltip: 'New task',
-              onPressed: () => _showTaskEditor(context, ref),
+              onPressed: () =>
+                  _showTaskEditor(context, ref, projectId: projectId),
               icon: const Icon(Icons.add_task_rounded)),
         ],
       ),
@@ -35,27 +37,32 @@ class TaskHomePage extends ConsumerWidget {
         error: (error, _) => _ErrorState(
             message: error.toString(),
             onRetry: () => ref.invalidate(taskControllerProvider)),
-        data: (state) => _TaskWorkspace(state: state),
+        data: (state) => _TaskWorkspace(state: state, projectId: projectId),
       ),
     );
   }
 }
 
 class _TaskWorkspace extends ConsumerWidget {
-  const _TaskWorkspace({required this.state});
+  const _TaskWorkspace({required this.state, this.projectId});
 
   final TaskState state;
+  final String? projectId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final controller = ref.read(taskControllerProvider.notifier);
+    final visibleTasks = state.visibleTasksFor(projectId);
     final colorScheme = Theme.of(context).colorScheme;
     return RefreshIndicator(
       onRefresh: () async => ref.invalidate(taskControllerProvider),
       child: ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
         children: [
-          Text('A calmer way to decide what to do next.',
+          Text(
+              projectId == null
+                  ? 'A calmer way to decide what to do next.'
+                  : 'Tasks connected to this project.',
               style: Theme.of(context).textTheme.bodyLarge),
           const SizedBox(height: 16),
           TextField(
@@ -100,17 +107,18 @@ class _TaskWorkspace extends ConsumerWidget {
                     onPressed: controller.clearSelection,
                     icon: const Icon(Icons.close_rounded)),
               ] else
-                Text('${state.visibleTasks.length} visible',
+                Text('${visibleTasks.length} visible',
                     style: Theme.of(context).textTheme.bodySmall),
             ],
           ),
           const SizedBox(height: 8),
-          if (state.visibleTasks.isEmpty)
+          if (visibleTasks.isEmpty)
             _EmptyTasks(
-                onCreate: () => _showTaskEditor(context, ref),
+                onCreate: () =>
+                    _showTaskEditor(context, ref, projectId: projectId),
                 hasQuery: state.query.isNotEmpty)
           else
-            ...state.visibleTasks.map(
+            ...visibleTasks.map(
               (task) => Padding(
                   padding: const EdgeInsets.only(bottom: 10),
                   child: _TaskCard(
@@ -385,7 +393,8 @@ Color _priorityColor(BuildContext context, String priority) =>
       _ => Theme.of(context).colorScheme.primary
     };
 
-Future<void> _showTaskEditor(BuildContext context, WidgetRef ref) async {
+Future<void> _showTaskEditor(BuildContext context, WidgetRef ref,
+    {String? projectId}) async {
   final titleController = TextEditingController();
   final descriptionController = TextEditingController();
   var priority = 'medium';
@@ -459,7 +468,8 @@ Future<void> _showTaskEditor(BuildContext context, WidgetRef ref) async {
     await ref.read(taskControllerProvider.notifier).createTask(
         title: titleController.text,
         description: descriptionController.text,
-        priority: priority);
+        priority: priority,
+        projectId: projectId);
   }
   titleController.dispose();
   descriptionController.dispose();

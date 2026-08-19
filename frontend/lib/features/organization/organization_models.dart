@@ -151,7 +151,8 @@ class ProjectModel {
           double? progress,
           DateTime? deadline,
           bool? favorite,
-          bool? archived}) =>
+          bool? archived,
+          List<String>? linkedGoalIds}) =>
       ProjectModel(
           id: id,
           workspaceId: workspaceId,
@@ -169,7 +170,7 @@ class ProjectModel {
           progress: progress ?? this.progress,
           tags: tags,
           category: category,
-          linkedGoalIds: linkedGoalIds,
+          linkedGoalIds: linkedGoalIds ?? this.linkedGoalIds,
           linkedTaskIds: linkedTaskIds,
           linkedNoteIds: linkedNoteIds,
           linkedEventIds: linkedEventIds,
@@ -279,7 +280,8 @@ class GoalModel {
           {String? title,
           double? progress,
           DateTime? targetDate,
-          bool? archived}) =>
+          bool? archived,
+          List<String>? linkedProjectIds}) =>
       GoalModel(
           id: id,
           title: title ?? this.title,
@@ -290,7 +292,7 @@ class GoalModel {
           progress: progress ?? this.progress,
           priority: priority,
           category: category,
-          linkedProjectIds: linkedProjectIds,
+          linkedProjectIds: linkedProjectIds ?? this.linkedProjectIds,
           archived: archived ?? this.archived);
   factory GoalModel.fromJson(Map<String, dynamic> json) => GoalModel(
       id: '${json['id'] ?? ''}',

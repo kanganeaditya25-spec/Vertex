@@ -107,6 +107,7 @@ class AssetRepository {
     String thumbnailUrl = '',
     List<String> tags = const [],
     String category = 'url',
+    String projectId = '',
   }) async {
     final current = await loadAssets();
     final hash = sha256.convert(utf8.encode(url)).toString();
@@ -129,7 +130,7 @@ class AssetRepository {
       ocrText: '',
       thumbnailKey: thumbnailUrl,
       workspaceId: '',
-      projectId: '',
+      projectId: projectId,
       folderId: 'root',
       category: category,
       tags: List.unmodifiable(tags),

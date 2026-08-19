@@ -8,6 +8,7 @@ from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
 from app.calendar.models import EventModel
+from app.core.event_bus.bus import DomainEvent, bus
 from app.db.session import get_db
 from app.notes.models import NoteModel
 from app.models.task import TaskModel
@@ -204,6 +205,7 @@ def create_project(payload: ProjectCreate, db: Session = Depends(get_db)) -> Pro
     _queue(db, "project", project.id, "create", payload.model_dump(mode="json"))
     db.commit()
     db.refresh(project)
+    bus.publish(DomainEvent("project.created", {"project_id": project.id, "workspace_id": project.workspace_id}))
     return project
 
 
@@ -222,6 +224,7 @@ def update_project(project_id: str, payload: ProjectUpdate, db: Session = Depend
     _queue(db, "project", project.id, "update", payload.model_dump(mode="json", exclude_unset=True), version=1)
     db.commit()
     db.refresh(project)
+    bus.publish(DomainEvent("project.updated", {"project_id": project.id, "changes": list(payload.model_dump(exclude_unset=True))}))
     return project
 
 
@@ -233,6 +236,7 @@ def delete_project(project_id: str, db: Session = Depends(get_db)) -> dict[str, 
     db.flush()
     _queue(db, "project", project.id, "archive", {"archived": True, "status": "archived"})
     db.commit()
+    bus.publish(DomainEvent("project.archived", {"project_id": project_id}))
     return {"id": project_id, "archived": True}
 
 
@@ -349,6 +353,7 @@ def create_milestone(payload: MilestoneCreate, db: Session = Depends(get_db)) ->
     _queue(db, "milestone", milestone.id, "create", payload.model_dump(mode="json"))
     db.commit()
     db.refresh(milestone)
+    bus.publish(DomainEvent("project.milestone.created", {"project_id": milestone.project_id, "milestone_id": milestone.id}))
     return milestone
 
 
@@ -365,6 +370,7 @@ def update_milestone(milestone_id: str, payload: MilestoneUpdate, db: Session = 
     _queue(db, "milestone", milestone.id, "update", payload.model_dump(mode="json", exclude_unset=True))
     db.commit()
     db.refresh(milestone)
+    bus.publish(DomainEvent("project.milestone.updated", {"project_id": milestone.project_id, "milestone_id": milestone.id}))
     return milestone
 
 
@@ -379,6 +385,7 @@ def delete_milestone(milestone_id: str, db: Session = Depends(get_db)) -> dict[s
         project.progress = effective_project_progress(project, _project_milestones(db, project.id))
     _queue(db, "milestone", milestone_id, "delete", {"project_id": project_id})
     db.commit()
+    bus.publish(DomainEvent("project.milestone.deleted", {"project_id": project_id, "milestone_id": milestone_id}))
     return {"id": milestone_id, "deleted": True}
 
 

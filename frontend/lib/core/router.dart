@@ -15,15 +15,25 @@ import '../features/reminders/reminders_page.dart';
 final GoRouter appRouter = GoRouter(
   routes: [
     GoRoute(path: '/', builder: (context, state) => const DashboardPage()),
-    GoRoute(path: '/tasks', builder: (context, state) => const TaskHomePage()),
+    GoRoute(
+      path: '/tasks',
+      builder: (context, state) =>
+          TaskHomePage(projectId: state.uri.queryParameters['project']),
+    ),
     GoRoute(
       path: '/calendar',
-      builder: (context, state) => const CalendarPage(),
+      builder: (context, state) =>
+          CalendarPage(projectId: state.uri.queryParameters['project']),
     ),
-    GoRoute(path: '/notes', builder: (context, state) => const NotesPage()),
+    GoRoute(
+      path: '/notes',
+      builder: (context, state) =>
+          NotesPage(projectId: state.uri.queryParameters['project']),
+    ),
     GoRoute(
       path: '/assistant',
-      builder: (context, state) => const AssistantPage(),
+      builder: (context, state) =>
+          AssistantPage(projectId: state.uri.queryParameters['project']),
     ),
     GoRoute(
       path: '/organization',
@@ -31,7 +41,8 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: '/analytics',
-      builder: (context, state) => const AnalyticsPage(),
+      builder: (context, state) =>
+          AnalyticsPage(projectId: state.uri.queryParameters['project']),
     ),
     GoRoute(
       path: '/automation',
@@ -43,11 +54,13 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: '/assets',
-      builder: (context, state) => const AssetsPage(),
+      builder: (context, state) =>
+          AssetsPage(projectId: state.uri.queryParameters['project']),
     ),
     GoRoute(
       path: '/reminders',
-      builder: (context, state) => const RemindersPage(),
+      builder: (context, state) =>
+          RemindersPage(projectId: state.uri.queryParameters['project']),
     ),
   ],
 );

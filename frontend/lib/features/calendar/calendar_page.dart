@@ -6,7 +6,8 @@ import 'calendar_models.dart';
 import 'calendar_providers.dart';
 
 class CalendarPage extends ConsumerWidget {
-  const CalendarPage({super.key});
+  const CalendarPage({super.key, this.projectId});
+  final String? projectId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -31,7 +32,7 @@ class CalendarPage extends ConsumerWidget {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-          onPressed: () => _showEventEditor(context, ref),
+          onPressed: () => _showEventEditor(context, ref, projectId: projectId),
           icon: const Icon(Icons.add_rounded),
           label: const Text('New event')),
       body: calendar.when(
@@ -39,19 +40,21 @@ class CalendarPage extends ConsumerWidget {
         error: (error, _) => _CalendarError(
             message: error.toString(),
             retry: () => ref.invalidate(calendarControllerProvider)),
-        data: (state) => _CalendarWorkspace(state: state),
+        data: (state) => _CalendarWorkspace(state: state, projectId: projectId),
       ),
     );
   }
 }
 
 class _CalendarWorkspace extends ConsumerWidget {
-  const _CalendarWorkspace({required this.state});
+  const _CalendarWorkspace({required this.state, this.projectId});
   final CalendarState state;
+  final String? projectId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final controller = ref.read(calendarControllerProvider.notifier);
+    final scopedState = state.forProject(projectId);
     return RefreshIndicator(
       onRefresh: () async => ref.invalidate(calendarControllerProvider),
       child: ListView(
@@ -90,18 +93,19 @@ class _CalendarWorkspace extends ConsumerWidget {
               duration: state.preferences.reducedMotion
                   ? Duration.zero
                   : const Duration(milliseconds: 220),
-              child: _viewFor(context, ref, state)),
+              child: _viewFor(context, ref, scopedState, projectId)),
         ],
       ),
     );
   }
 }
 
-Widget _viewFor(BuildContext context, WidgetRef ref, CalendarState state) =>
+Widget _viewFor(BuildContext context, WidgetRef ref, CalendarState state,
+        String? projectId) =>
     switch (state.view) {
-      'day' => _DayView(state: state),
-      'month' => _MonthView(state: state),
-      _ => _AgendaView(state: state),
+      'day' => _DayView(state: state, projectId: projectId),
+      'month' => _MonthView(state: state, projectId: projectId),
+      _ => _AgendaView(state: state, projectId: projectId),
     };
 
 class _ViewSwitcher extends ConsumerWidget {
@@ -125,8 +129,9 @@ class _ViewSwitcher extends ConsumerWidget {
 }
 
 class _AgendaView extends ConsumerWidget {
-  const _AgendaView({required this.state});
+  const _AgendaView({required this.state, this.projectId});
   final CalendarState state;
+  final String? projectId;
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final events = state.visibleEvents;
@@ -146,7 +151,8 @@ class _AgendaView extends ConsumerWidget {
       const SizedBox(height: 8),
       if (events.isEmpty)
         _EmptyCalendar(
-            onCreate: () => _showEventEditor(context, ref),
+            onCreate: () =>
+                _showEventEditor(context, ref, projectId: projectId),
             message: state.query.isEmpty
                 ? 'Your schedule has room for something meaningful.'
                 : 'No events match that search.')
@@ -159,8 +165,9 @@ class _AgendaView extends ConsumerWidget {
 }
 
 class _DayView extends ConsumerWidget {
-  const _DayView({required this.state});
+  const _DayView({required this.state, this.projectId});
   final CalendarState state;
+  final String? projectId;
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final events = state.selectedDayEvents;
@@ -171,7 +178,8 @@ class _DayView extends ConsumerWidget {
       const SizedBox(height: 18),
       if (events.isEmpty)
         _EmptyCalendar(
-            onCreate: () => _showEventEditor(context, ref),
+            onCreate: () =>
+                _showEventEditor(context, ref, projectId: projectId),
             message: 'No events are scheduled for this day.')
       else
         ...events.map((event) => Padding(
@@ -182,8 +190,9 @@ class _DayView extends ConsumerWidget {
 }
 
 class _MonthView extends ConsumerWidget {
-  const _MonthView({required this.state});
+  const _MonthView({required this.state, this.projectId});
   final CalendarState state;
+  final String? projectId;
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final controller = ref.read(calendarControllerProvider.notifier);
@@ -201,7 +210,8 @@ class _MonthView extends ConsumerWidget {
           child: _EventCard(event: event))),
       if (state.selectedDayEvents.isEmpty)
         _EmptyCalendar(
-            onCreate: () => _showEventEditor(context, ref),
+            onCreate: () =>
+                _showEventEditor(context, ref, projectId: projectId),
             message: 'No events on the selected date.'),
     ]);
   }
@@ -516,7 +526,8 @@ Color _eventColor(BuildContext context, CalendarEvent event) =>
       _ => Theme.of(context).colorScheme.primary
     };
 
-Future<void> _showEventEditor(BuildContext context, WidgetRef ref) async {
+Future<void> _showEventEditor(BuildContext context, WidgetRef ref,
+    {String? projectId}) async {
   final title = TextEditingController();
   final description = TextEditingController();
   final location = TextEditingController();
@@ -644,7 +655,8 @@ Future<void> _showEventEditor(BuildContext context, WidgetRef ref) async {
         endAt: normalizedStart.add(const Duration(minutes: 50)),
         eventType: eventType,
         priority: priority,
-        energyLevel: energy);
+        energyLevel: energy,
+        projectId: projectId);
   }
   title.dispose();
   description.dispose();

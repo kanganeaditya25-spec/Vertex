@@ -582,6 +582,10 @@ class _ProjectDashboardView extends ConsumerWidget {
     final goals = state.goals
         .where((goal) => project.linkedGoalIds.contains(goal.id))
         .toList();
+    final availableGoals = state.workspaceGoals
+        .where((goal) => !project.linkedGoalIds.contains(goal.id))
+        .toList();
+    final controller = ref.read(organizationControllerProvider.notifier);
     final risk = project.deadline != null &&
         project.progress < 60 &&
         project.deadline!.difference(DateTime.now()).inDays <= 14;
@@ -693,11 +697,23 @@ class _ProjectDashboardView extends ConsumerWidget {
                   .read(organizationControllerProvider.notifier)
                   .updateMilestone(value))),
         const SizedBox(height: 16),
-        Text('Connected goals',
-            style: Theme.of(context)
-                .textTheme
-                .titleMedium
-                ?.copyWith(fontWeight: FontWeight.w800)),
+        Row(
+          children: [
+            Expanded(
+              child: Text('Connected goals',
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleMedium
+                      ?.copyWith(fontWeight: FontWeight.w800)),
+            ),
+            if (availableGoals.isNotEmpty)
+              OutlinedButton.icon(
+                  onPressed: () =>
+                      _chooseGoal(context, controller, project, availableGoals),
+                  icon: const Icon(Icons.link_rounded),
+                  label: const Text('Link goal'))
+          ],
+        ),
         const SizedBox(height: 8),
         if (goals.isEmpty)
           const Card(
@@ -707,7 +723,9 @@ class _ProjectDashboardView extends ConsumerWidget {
                   child: Text(
                       'No goals linked yet. Link the project to a goal to make progress meaningful across the system.')))
         else
-          ...goals.map((goal) => _GoalLinkTile(goal: goal)),
+          ...goals.map((goal) => _GoalLinkTile(
+              goal: goal,
+              onUnlink: () => controller.unlinkGoalFromProject(goal.id))),
       ],
     );
   }
@@ -764,9 +782,49 @@ class _MilestoneTile extends StatelessWidget {
   }
 }
 
+Future<void> _chooseGoal(
+    BuildContext context,
+    OrganizationController controller,
+    ProjectModel project,
+    List<GoalModel> goals) async {
+  final goalId = await showDialog<String>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: const Text('Link a goal'),
+      content: SizedBox(
+        width: 420,
+        child: goals.isEmpty
+            ? const Text('No unlinked goals are available in this workspace.')
+            : ListView(
+                shrinkWrap: true,
+                children: [
+                  for (final goal in goals)
+                    ListTile(
+                      leading: const Icon(Icons.flag_outlined),
+                      title: Text(goal.title),
+                      subtitle:
+                          Text('${goal.progress.toStringAsFixed(0)}% complete'),
+                      onTap: () => Navigator.pop(dialogContext, goal.id),
+                    )
+                ],
+              ),
+      ),
+      actions: [
+        TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'))
+      ],
+    ),
+  );
+  if (goalId != null && project.id.isNotEmpty) {
+    await controller.linkGoalToProject(goalId);
+  }
+}
+
 class _GoalLinkTile extends StatelessWidget {
-  const _GoalLinkTile({required this.goal});
+  const _GoalLinkTile({required this.goal, this.onUnlink});
   final GoalModel goal;
+  final VoidCallback? onUnlink;
 
   @override
   Widget build(BuildContext context) {
@@ -777,12 +835,22 @@ class _GoalLinkTile extends StatelessWidget {
         title: Text(goal.title),
         subtitle: Text(
             '${goal.goalType} · ${goal.progress.toStringAsFixed(0)}% complete'),
-        trailing: SizedBox(
-            width: 90,
-            child: LinearProgressIndicator(
-                value: (goal.progress / 100).clamp(0, 1),
-                color: const Color(0xFFB45309),
-                backgroundColor: const Color(0xFFFFEDD5))),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+                width: 90,
+                child: LinearProgressIndicator(
+                    value: (goal.progress / 100).clamp(0, 1),
+                    color: const Color(0xFFB45309),
+                    backgroundColor: const Color(0xFFFFEDD5))),
+            if (onUnlink != null)
+              IconButton(
+                  tooltip: 'Unlink goal',
+                  onPressed: onUnlink,
+                  icon: const Icon(Icons.link_off_rounded))
+          ],
+        ),
       ),
     );
   }
@@ -1154,35 +1222,36 @@ class _ConnectedSystems extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final projectQuery = Uri.encodeQueryComponent(project.id);
     final chips = <Widget>[
       ActionChip(
           avatar: const Icon(Icons.checklist_rounded, size: 18),
           label: Text('Tasks ${project.linkedTaskIds.length}'),
-          onPressed: () => context.push('/tasks')),
+          onPressed: () => context.push('/tasks?project=$projectQuery')),
       ActionChip(
           avatar: const Icon(Icons.calendar_month_rounded, size: 18),
           label: Text('Calendar ${project.linkedEventIds.length}'),
-          onPressed: () => context.push('/calendar')),
+          onPressed: () => context.push('/calendar?project=$projectQuery')),
       ActionChip(
           avatar: const Icon(Icons.menu_book_rounded, size: 18),
           label: Text('Notes ${project.linkedNoteIds.length}'),
-          onPressed: () => context.push('/notes')),
+          onPressed: () => context.push('/notes?project=$projectQuery')),
       ActionChip(
           avatar: const Icon(Icons.attach_file_rounded, size: 18),
           label: Text('Assets ${project.linkedAssetIds.length}'),
-          onPressed: () => context.push('/assets')),
+          onPressed: () => context.push('/assets?project=$projectQuery')),
       ActionChip(
           avatar: const Icon(Icons.notifications_none_rounded, size: 18),
           label: Text('Reminders ${project.linkedReminderIds.length}'),
-          onPressed: () => _showUnavailable(context, 'Reminder Engine')),
+          onPressed: () => context.push('/reminders?project=$projectQuery')),
       ActionChip(
           avatar: const Icon(Icons.insights_rounded, size: 18),
           label: const Text('Analytics'),
-          onPressed: () => context.push('/analytics')),
+          onPressed: () => context.push('/analytics?project=$projectQuery')),
       ActionChip(
           avatar: const Icon(Icons.auto_awesome_rounded, size: 18),
           label: const Text('Project AI'),
-          onPressed: () => context.push('/assistant')),
+          onPressed: () => context.push('/assistant?project=$projectQuery')),
     ];
     return Card(
       elevation: 0,
@@ -1283,20 +1352,6 @@ Future<void> _showExportNotice(
                       if (dialogContext.mounted) Navigator.pop(dialogContext);
                     },
                     child: const Text('Copy JSON')),
-                FilledButton(
-                    onPressed: () => Navigator.pop(dialogContext),
-                    child: const Text('Close'))
-              ]));
-}
-
-Future<void> _showUnavailable(BuildContext context, String name) async {
-  await showDialog<void>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-              title: Text(name),
-              content: Text(
-                  '$name is prepared as an integration point in the project context. Its dedicated module can be connected without changing this hierarchy.'),
-              actions: [
                 FilledButton(
                     onPressed: () => Navigator.pop(dialogContext),
                     child: const Text('Close'))

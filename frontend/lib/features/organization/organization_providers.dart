@@ -29,8 +29,11 @@ class OrganizationState {
 
   WorkspaceModel? get selectedWorkspace =>
       workspaces.where((item) => item.id == selectedWorkspaceId).firstOrNull;
-  ProjectModel? get selectedProject =>
-      projects.where((item) => item.id == selectedProjectId).firstOrNull;
+  ProjectModel? get selectedProject => projects
+      .where((item) =>
+          item.id == selectedProjectId &&
+          item.workspaceId == selectedWorkspaceId)
+      .firstOrNull;
   List<ProjectModel> get workspaceProjects => projects
       .where(
           (item) => item.workspaceId == selectedWorkspaceId && !item.archived)
@@ -57,7 +60,8 @@ class OrganizationState {
           List<ProjectTemplateModel>? templates,
           String? selectedWorkspaceId,
           String? selectedProjectId,
-          String? projectView}) =>
+          String? projectView,
+          bool clearSelectedProject = false}) =>
       OrganizationState(
           workspaces: workspaces ?? this.workspaces,
           projects: projects ?? this.projects,
@@ -65,7 +69,9 @@ class OrganizationState {
           milestones: milestones ?? this.milestones,
           templates: templates ?? this.templates,
           selectedWorkspaceId: selectedWorkspaceId ?? this.selectedWorkspaceId,
-          selectedProjectId: selectedProjectId ?? this.selectedProjectId,
+          selectedProjectId: clearSelectedProject
+              ? null
+              : selectedProjectId ?? this.selectedProjectId,
           projectView: projectView ?? this.projectView);
 }
 
@@ -75,7 +81,9 @@ class OrganizationController extends AsyncNotifier<OrganizationState> {
   Future<OrganizationState> build() async {
     final preferences = await SharedPreferences.getInstance();
     _repository = OrganizationRepository(preferences);
-    var workspaces = await _repository!.loadWorkspaces();
+    var workspaces = (await _repository!.loadWorkspaces())
+        .where((item) => !item.archived)
+        .toList();
     if (workspaces.isEmpty) {
       final now = DateTime.now();
       final personal = WorkspaceModel(
@@ -107,12 +115,14 @@ class OrganizationController extends AsyncNotifier<OrganizationState> {
   void selectWorkspace(String id) {
     final current = state.valueOrNull;
     if (current == null) return;
+    final nextProjectId = current.projects
+        .where((item) => item.workspaceId == id && !item.archived)
+        .firstOrNull
+        ?.id;
     state = AsyncData(current.copyWith(
         selectedWorkspaceId: id,
-        selectedProjectId: current.projects
-            .where((item) => item.workspaceId == id && !item.archived)
-            .firstOrNull
-            ?.id));
+        selectedProjectId: nextProjectId,
+        clearSelectedProject: nextProjectId == null));
   }
 
   void selectProject(String id) {
@@ -142,7 +152,7 @@ class OrganizationController extends AsyncNotifier<OrganizationState> {
     state = AsyncData(current.copyWith(
         workspaces: [...current.workspaces, item],
         selectedWorkspaceId: item.id,
-        selectedProjectId: null));
+        clearSelectedProject: true));
   }
 
   Future<void> createProject(String name, String description) async {
@@ -184,9 +194,66 @@ class OrganizationController extends AsyncNotifier<OrganizationState> {
         workspaceId: workspace.id,
         description: description.trim(),
         goalType: 'weekly',
-        priority: 'high');
+        priority: 'high',
+        linkedProjectIds: current.selectedProject == null
+            ? const []
+            : [current.selectedProject!.id]);
     await _repository!.createGoal(item);
     state = AsyncData(current.copyWith(goals: [...current.goals, item]));
+  }
+
+  Future<void> linkGoalToProject(String goalId) async {
+    final current = state.valueOrNull;
+    final project = current?.selectedProject;
+    final goal = current?.goals.where((item) => item.id == goalId).firstOrNull;
+    if (current == null ||
+        project == null ||
+        goal == null ||
+        _repository == null) {
+      return;
+    }
+    if (!project.linkedGoalIds.contains(goalId)) {
+      final updatedProject =
+          project.copyWith(linkedGoalIds: [...project.linkedGoalIds, goalId]);
+      await _repository!.saveProject(updatedProject);
+      final updatedGoal = goal
+          .copyWith(linkedProjectIds: [...goal.linkedProjectIds, project.id]);
+      await _repository!.saveGoal(updatedGoal);
+      state = AsyncData(current.copyWith(
+          projects: current.projects
+              .map((item) => item.id == project.id ? updatedProject : item)
+              .toList(),
+          goals: current.goals
+              .map((item) => item.id == goal.id ? updatedGoal : item)
+              .toList()));
+    }
+  }
+
+  Future<void> unlinkGoalFromProject(String goalId) async {
+    final current = state.valueOrNull;
+    final project = current?.selectedProject;
+    final goal = current?.goals.where((item) => item.id == goalId).firstOrNull;
+    if (current == null ||
+        project == null ||
+        goal == null ||
+        _repository == null) {
+      return;
+    }
+    final updatedProject = project.copyWith(
+        linkedGoalIds:
+            project.linkedGoalIds.where((item) => item != goalId).toList());
+    await _repository!.saveProject(updatedProject);
+    final updatedGoal = goal.copyWith(
+        linkedProjectIds:
+            goal.linkedProjectIds.where((item) => item != project.id).toList());
+    await _repository!.saveGoal(updatedGoal);
+    state = AsyncData(current.copyWith(
+        projects: current.projects
+            .map((item) => item.id == project.id ? updatedProject : item)
+            .toList(),
+        goals: current.goals
+            .map((item) => item.id == goal.id ? updatedGoal : item)
+            .toList()));
   }
 
   Future<void> createMilestone(String name) async {
@@ -231,12 +298,14 @@ class OrganizationController extends AsyncNotifier<OrganizationState> {
             ? project.copyWith(status: 'archived', archived: true)
             : value)
         .toList();
+    final nextProjectId = current.workspaceProjects
+        .where((value) => value.id != project.id)
+        .firstOrNull
+        ?.id;
     state = AsyncData(current.copyWith(
         projects: nextProjects,
-        selectedProjectId: current.workspaceProjects
-            .where((value) => value.id != project.id)
-            .firstOrNull
-            ?.id));
+        selectedProjectId: nextProjectId,
+        clearSelectedProject: nextProjectId == null));
   }
 
   Future<void> duplicateProject() async {
@@ -260,7 +329,7 @@ class OrganizationController extends AsyncNotifier<OrganizationState> {
     state = AsyncData(current.copyWith(
         projects:
             current.projects.where((value) => value.id != project.id).toList(),
-        selectedProjectId: null));
+        clearSelectedProject: true));
   }
 
   Future<void> updateMilestone(MilestoneModel item) async {

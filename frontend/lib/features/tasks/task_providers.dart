@@ -23,7 +23,9 @@ class TaskState {
   final String sortBy;
   final Set<String> selectedIds;
 
-  List<TaskModel> get visibleTasks {
+  List<TaskModel> get visibleTasks => visibleTasksFor(null);
+
+  List<TaskModel> visibleTasksFor(String? projectId) {
     final normalized = query.trim().toLowerCase();
     final filtered = tasks.where((task) {
       final matchesQuery = normalized.isEmpty ||
@@ -33,9 +35,11 @@ class TaskState {
       final matchesStatus = statusFilter == null || task.status == statusFilter;
       final matchesPriority =
           priorityFilter == null || task.priority == priorityFilter;
+      final matchesProject = projectId == null || task.project == projectId;
       return matchesQuery &&
           matchesStatus &&
           matchesPriority &&
+          matchesProject &&
           !task.isDeleted;
     }).toList();
     filtered.sort((a, b) {
@@ -111,7 +115,10 @@ class TaskController extends AsyncNotifier<TaskState> {
       String category = 'general',
       DateTime? deadline,
       int estimatedMinutes = 0,
-      List<String> tags = const []}) async {
+      List<String> tags = const [],
+      String? projectId,
+      String? workspaceId,
+      String? goalId}) async {
     final current = state.valueOrNull;
     if (current == null || _repository == null) return;
     final now = DateTime.now();
@@ -124,6 +131,9 @@ class TaskController extends AsyncNotifier<TaskState> {
         deadline: deadline,
         estimatedMinutes: estimatedMinutes,
         tags: tags,
+        project: projectId,
+        workspace: workspaceId,
+        goalId: goalId,
         createdAt: now,
         updatedAt: now);
     final saved = await _repository!.create(task);

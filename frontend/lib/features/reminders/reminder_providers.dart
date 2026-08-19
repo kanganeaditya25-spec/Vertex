@@ -30,7 +30,10 @@ class ReminderState {
   final List<SmartSuggestionModel> smartSuggestions;
   final int deliveredCount;
 
-  List<ReminderModel> get visibleReminders => reminders.where((reminder) {
+  List<ReminderModel> get visibleReminders => visibleRemindersFor(null);
+
+  List<ReminderModel> visibleRemindersFor(String? projectId) =>
+      reminders.where((reminder) {
         if (filter == 'active' && !reminder.isActive) return false;
         if (filter == 'today') {
           final date = reminder.nextTriggerAt;
@@ -52,6 +55,9 @@ class ReminderState {
           return false;
         }
         if (filter == 'history' && reminder.isActive) {
+          return false;
+        }
+        if (projectId != null && reminder.projectId != projectId) {
           return false;
         }
         if (query.trim().isEmpty) return true;
@@ -133,7 +139,8 @@ class ReminderController extends AsyncNotifier<ReminderState> {
       int priority = 3,
       String category = 'general',
       String triggerType = 'time',
-      Map<String, dynamic> repeatRule = const {}}) async {
+      Map<String, dynamic> repeatRule = const {},
+      String projectId = ''}) async {
     if (_repository == null) return;
     await _repository!.create(
         title: title,
@@ -143,7 +150,8 @@ class ReminderController extends AsyncNotifier<ReminderState> {
         priority: priority,
         category: category,
         triggerType: triggerType,
-        repeatRule: repeatRule);
+        repeatRule: repeatRule,
+        projectId: projectId);
     await refresh();
   }
 

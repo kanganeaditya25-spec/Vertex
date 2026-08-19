@@ -10,7 +10,8 @@ import 'asset_models.dart';
 import 'asset_providers.dart';
 
 class AssetsPage extends ConsumerWidget {
-  const AssetsPage({super.key});
+  const AssetsPage({super.key, this.projectId});
+  final String? projectId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -26,11 +27,12 @@ class AssetsPage extends ConsumerWidget {
               icon: const Icon(Icons.refresh_rounded)),
           IconButton(
               tooltip: 'Import files',
-              onPressed: () => _importFiles(context, ref),
+              onPressed: () => _importFiles(context, ref, projectId: projectId),
               icon: const Icon(Icons.file_upload_outlined)),
           IconButton(
               tooltip: 'Save URL',
-              onPressed: () => _showUrlDialog(context, ref),
+              onPressed: () =>
+                  _showUrlDialog(context, ref, projectId: projectId),
               icon: const Icon(Icons.link_rounded)),
         ],
       ),
@@ -38,22 +40,24 @@ class AssetsPage extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) =>
             Center(child: Text('Asset Library could not load: $error')),
-        data: (state) => _AssetWorkspace(state: state),
+        data: (state) => _AssetWorkspace(state: state, projectId: projectId),
       ),
     );
   }
 }
 
 class _AssetWorkspace extends ConsumerWidget {
-  const _AssetWorkspace({required this.state});
+  const _AssetWorkspace({required this.state, this.projectId});
   final AssetState state;
+  final String? projectId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final scopedState = state.forProject(projectId);
     return LayoutBuilder(
       builder: (context, constraints) {
-        final sidebar = _LibrarySidebar(state: state);
-        final content = _AssetContent(state: state);
+        final sidebar = _LibrarySidebar(state: scopedState);
+        final content = _AssetContent(state: scopedState, projectId: projectId);
         if (constraints.maxWidth < 860) {
           return Column(children: [
             SizedBox(height: 138, child: sidebar),
@@ -172,8 +176,9 @@ class _LibrarySidebar extends ConsumerWidget {
 }
 
 class _AssetContent extends ConsumerWidget {
-  const _AssetContent({required this.state});
+  const _AssetContent({required this.state, this.projectId});
   final AssetState state;
+  final String? projectId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -236,8 +241,10 @@ class _AssetContent extends ConsumerWidget {
         Expanded(
             child: assets.isEmpty
                 ? _EmptyLibrary(
-                    onImport: () => _importFiles(context, ref),
-                    onUrl: () => _showUrlDialog(context, ref))
+                    onImport: () =>
+                        _importFiles(context, ref, projectId: projectId),
+                    onUrl: () =>
+                        _showUrlDialog(context, ref, projectId: projectId))
                 : state.viewMode == 'grid'
                     ? _AssetGrid(assets: assets)
                     : _AssetList(assets: assets)),
@@ -483,12 +490,14 @@ class _EmptyLibrary extends StatelessWidget {
   }
 }
 
-Future<void> _importFiles(BuildContext context, WidgetRef ref) async {
+Future<void> _importFiles(BuildContext context, WidgetRef ref,
+    {String? projectId}) async {
   final result = await FilePicker.platform
       .pickFiles(allowMultiple: true, withData: true, type: FileType.any);
   if (result == null || !context.mounted) return;
-  final count =
-      await ref.read(assetControllerProvider.notifier).importFiles(result);
+  final count = await ref
+      .read(assetControllerProvider.notifier)
+      .importFiles(result, projectId: projectId ?? '');
   if (context.mounted) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -499,7 +508,8 @@ Future<void> _importFiles(BuildContext context, WidgetRef ref) async {
   }
 }
 
-Future<void> _showUrlDialog(BuildContext context, WidgetRef ref) async {
+Future<void> _showUrlDialog(BuildContext context, WidgetRef ref,
+    {String? projectId}) async {
   final nameController = TextEditingController();
   final urlController = TextEditingController();
   final descriptionController = TextEditingController();
@@ -558,6 +568,7 @@ Future<void> _showUrlDialog(BuildContext context, WidgetRef ref) async {
           name: nameController.text.trim(),
           url: urlController.text.trim(),
           description: descriptionController.text.trim(),
+          projectId: projectId ?? '',
         );
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(

@@ -26,7 +26,9 @@ class CalendarState {
   final String? categoryFilter;
   final List<CalendarConflict> conflicts;
 
-  List<CalendarEvent> get visibleEvents {
+  List<CalendarEvent> get visibleEvents => visibleEventsFor(null);
+
+  List<CalendarEvent> visibleEventsFor(String? projectId) {
     final normalized = query.trim().toLowerCase();
     return events.where((event) {
       final searchable =
@@ -36,13 +38,21 @@ class CalendarState {
           normalized.isEmpty || searchable.contains(normalized);
       final matchesCategory =
           categoryFilter == null || event.category == categoryFilter;
+      final matchesProject = projectId == null || event.projectId == projectId;
       return matchesQuery &&
           matchesCategory &&
+          matchesProject &&
           event.status != 'deleted' &&
           event.status != 'archived';
     }).toList()
       ..sort((a, b) => a.startAt.compareTo(b.startAt));
   }
+
+  CalendarState forProject(String? projectId) => projectId == null
+      ? this
+      : copyWith(
+          events:
+              events.where((event) => event.projectId == projectId).toList());
 
   List<CalendarEvent> get selectedDayEvents => visibleEvents
       .where((event) =>
@@ -117,7 +127,8 @@ class CalendarController extends AsyncNotifier<CalendarState> {
       String? location,
       int estimatedMinutes = 0,
       String energyLevel = 'medium',
-      bool flexible = true}) async {
+      bool flexible = true,
+      String? projectId}) async {
     final current = state.valueOrNull;
     if (current == null || _repository == null) return;
     final now = DateTime.now();
@@ -134,6 +145,7 @@ class CalendarController extends AsyncNotifier<CalendarState> {
         estimatedMinutes: estimatedMinutes,
         energyLevel: energyLevel,
         flexible: flexible,
+        projectId: projectId,
         createdAt: now,
         updatedAt: now);
     final saved = await _repository!.create(event);

@@ -6,7 +6,8 @@ import 'analytics_models.dart';
 import 'analytics_providers.dart';
 
 class AnalyticsPage extends ConsumerWidget {
-  const AnalyticsPage({super.key});
+  const AnalyticsPage({super.key, this.projectId});
+  final String? projectId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -35,15 +36,16 @@ class AnalyticsPage extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) =>
             Center(child: Text('Analytics could not load: $error')),
-        data: (state) => _AnalyticsContent(state: state),
+        data: (state) => _AnalyticsContent(state: state, projectId: projectId),
       ),
     );
   }
 }
 
 class _AnalyticsContent extends ConsumerWidget {
-  const _AnalyticsContent({required this.state});
+  const _AnalyticsContent({required this.state, this.projectId});
   final AnalyticsState state;
+  final String? projectId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -83,6 +85,15 @@ class _AnalyticsContent extends ConsumerWidget {
             ),
           ],
         ),
+        if (projectId != null) ...[
+          const SizedBox(height: 12),
+          const Card(
+              child: ListTile(
+                  leading: Icon(Icons.folder_special_outlined),
+                  title: Text('Project context connected'),
+                  subtitle: Text(
+                      'Global local analytics are shown; project-linked events can use this context.'))),
+        ],
         const SizedBox(height: 20),
         _MetricGrid(dashboard: dashboard),
         const SizedBox(height: 16),

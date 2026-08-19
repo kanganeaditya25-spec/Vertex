@@ -22,7 +22,15 @@ class NotesState {
 
   NoteModel? get selectedNote =>
       notes.where((note) => note.id == selectedId).firstOrNull;
-  List<NoteModel> get visibleNotes {
+  List<NoteModel> get visibleNotes => visibleNotesFor(null);
+
+  NoteModel? selectedNoteFor(String? projectId) => notes
+      .where((note) =>
+          note.id == selectedId &&
+          (projectId == null || note.projectId == projectId))
+      .firstOrNull;
+
+  List<NoteModel> visibleNotesFor(String? projectId) {
     final normalized = query.trim().toLowerCase();
     final result = notes.where((note) {
       final searchText =
@@ -30,7 +38,8 @@ class NotesState {
               .toLowerCase();
       return (normalized.isEmpty || searchText.contains(normalized)) &&
           (!favoriteOnly || note.favorite) &&
-          (noteTypeFilter == null || note.noteType == noteTypeFilter);
+          (noteTypeFilter == null || note.noteType == noteTypeFilter) &&
+          (projectId == null || note.projectId == projectId);
     }).toList();
     result.sort((a, b) {
       if (a.pinned != b.pinned) return a.pinned ? -1 : 1;
@@ -80,7 +89,9 @@ class NotesController extends AsyncNotifier<NotesState> {
           : current.copyWith(noteTypeFilter: value));
 
   Future<void> createNote(
-      {String title = 'Untitled note', String noteType = 'rich'}) async {
+      {String title = 'Untitled note',
+      String noteType = 'rich',
+      String? projectId}) async {
     final current = state.valueOrNull;
     if (current == null || _repository == null) return;
     final now = DateTime.now();
@@ -88,6 +99,7 @@ class NotesController extends AsyncNotifier<NotesState> {
         id: 'local-${now.microsecondsSinceEpoch}',
         title: title,
         noteType: noteType,
+        projectId: projectId,
         blocks: [
           NoteBlock(
               id: 'block-${now.microsecondsSinceEpoch}',

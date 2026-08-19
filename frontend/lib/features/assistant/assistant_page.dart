@@ -6,7 +6,8 @@ import 'assistant_models.dart';
 import 'assistant_providers.dart';
 
 class AssistantPage extends ConsumerWidget {
-  const AssistantPage({super.key});
+  const AssistantPage({super.key, this.projectId});
+  final String? projectId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -30,29 +31,47 @@ class AssistantPage extends ConsumerWidget {
           error: (error, _) => _AssistantError(
               message: error.toString(),
               retry: () => ref.invalidate(assistantControllerProvider)),
-          data: (state) => _AssistantWorkspace(state: state)),
+          data: (state) =>
+              _AssistantWorkspace(state: state, projectId: projectId)),
     );
   }
 }
 
 class _AssistantWorkspace extends ConsumerWidget {
-  const _AssistantWorkspace({required this.state});
+  const _AssistantWorkspace({required this.state, this.projectId});
   final AssistantState state;
+  final String? projectId;
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final wide = MediaQuery.sizeOf(context).width >= 980;
     final sidebar = _ConversationSidebar(state: state);
+    final projectContext = projectId == null
+        ? null
+        : const Padding(
+            padding: EdgeInsets.fromLTRB(12, 8, 12, 0),
+            child: Card(
+                child: ListTile(
+                    leading: Icon(Icons.folder_special_outlined),
+                    title: Text('Project context connected'),
+                    subtitle: Text(
+                        'Use project-linked actions from this assistant view.'))));
     final chat = state.activeConversation == null
         ? _AssistantWelcome(state: state)
         : _AssistantChat(conversation: state.activeConversation!);
     if (wide) {
       return Row(children: [
-        SizedBox(width: 300, child: sidebar),
+        SizedBox(
+            width: 300,
+            child: Column(children: [
+              if (projectContext != null) projectContext,
+              Expanded(child: sidebar)
+            ])),
         const VerticalDivider(width: 1),
         Expanded(child: chat)
       ]);
     }
     return Column(children: [
+      if (projectContext != null) projectContext,
       SizedBox(height: 170, child: sidebar),
       const Divider(height: 1),
       Expanded(child: chat)

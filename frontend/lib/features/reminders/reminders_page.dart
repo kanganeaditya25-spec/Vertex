@@ -5,7 +5,8 @@ import 'reminder_models.dart';
 import 'reminder_providers.dart';
 
 class RemindersPage extends ConsumerStatefulWidget {
-  const RemindersPage({super.key});
+  const RemindersPage({super.key, this.projectId});
+  final String? projectId;
 
   @override
   ConsumerState<RemindersPage> createState() => _RemindersPageState();
@@ -46,7 +47,8 @@ class _RemindersPageState extends ConsumerState<RemindersPage> {
         data: _buildContent,
       ),
       floatingActionButton: FloatingActionButton.extended(
-          onPressed: () => _showCreateDialog(context),
+          onPressed: () =>
+              _showCreateDialog(context, projectId: widget.projectId),
           icon: const Icon(Icons.add_alarm_rounded),
           label: const Text('New reminder')),
     );
@@ -80,8 +82,10 @@ class _RemindersPageState extends ConsumerState<RemindersPage> {
           const SizedBox(height: 16),
           if (state.selectedIds.isNotEmpty) _bulkBar(state),
           if (state.selectedIds.isNotEmpty) const SizedBox(height: 12),
-          if (state.visibleReminders.isEmpty) _emptyState(state.filter),
-          if (state.visibleReminders.isNotEmpty) _reminderGrid(state, wide),
+          if (state.visibleRemindersFor(widget.projectId).isEmpty)
+            _emptyState(state.filter),
+          if (state.visibleRemindersFor(widget.projectId).isNotEmpty)
+            _reminderGrid(state, wide, projectId: widget.projectId),
         ],
       );
     });
@@ -221,8 +225,10 @@ class _RemindersPageState extends ConsumerState<RemindersPage> {
     );
   }
 
-  Widget _reminderGrid(ReminderState state, bool wide) => wide
-      ? GridView.builder(
+  Widget _reminderGrid(ReminderState state, bool wide, {String? projectId}) {
+    final visibleReminders = state.visibleRemindersFor(projectId);
+    if (wide) {
+      return GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
@@ -230,33 +236,34 @@ class _RemindersPageState extends ConsumerState<RemindersPage> {
               mainAxisExtent: 190,
               crossAxisSpacing: 12,
               mainAxisSpacing: 12),
-          itemCount: state.visibleReminders.length,
+          itemCount: visibleReminders.length,
           itemBuilder: (context, index) => _ReminderCard(
-              reminder: state.visibleReminders[index],
-              selected:
-                  state.selectedIds.contains(state.visibleReminders[index].id),
+              reminder: visibleReminders[index],
+              selected: state.selectedIds.contains(visibleReminders[index].id),
               onSelect: () => ref
                   .read(reminderControllerProvider.notifier)
-                  .toggleSelection(state.visibleReminders[index].id),
+                  .toggleSelection(visibleReminders[index].id),
               onComplete: () => ref
                   .read(reminderControllerProvider.notifier)
-                  .complete(state.visibleReminders[index].id),
-              onSnooze: () => _snooze(state.visibleReminders[index])))
-      : Column(children: [
-          for (final reminder in state.visibleReminders)
-            Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: _ReminderCard(
-                    reminder: reminder,
-                    selected: state.selectedIds.contains(reminder.id),
-                    onSelect: () => ref
-                        .read(reminderControllerProvider.notifier)
-                        .toggleSelection(reminder.id),
-                    onComplete: () => ref
-                        .read(reminderControllerProvider.notifier)
-                        .complete(reminder.id),
-                    onSnooze: () => _snooze(reminder)))
-        ]);
+                  .complete(visibleReminders[index].id),
+              onSnooze: () => _snooze(visibleReminders[index])));
+    }
+    return Column(children: [
+      for (final reminder in visibleReminders)
+        Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: _ReminderCard(
+                reminder: reminder,
+                selected: state.selectedIds.contains(reminder.id),
+                onSelect: () => ref
+                    .read(reminderControllerProvider.notifier)
+                    .toggleSelection(reminder.id),
+                onComplete: () => ref
+                    .read(reminderControllerProvider.notifier)
+                    .complete(reminder.id),
+                onSnooze: () => _snooze(reminder)))
+    ]);
+  }
 
   Widget _emptyState(String filter) {
     return Card(
@@ -303,7 +310,8 @@ class _RemindersPageState extends ConsumerState<RemindersPage> {
     }
   }
 
-  Future<void> _showCreateDialog(BuildContext context) async {
+  Future<void> _showCreateDialog(BuildContext context,
+      {String? projectId}) async {
     final result = await showDialog<_CreateReminderResult>(
         context: context, builder: (_) => const _CreateReminderDialog());
     if (result == null || !mounted) return;
@@ -313,7 +321,8 @@ class _RemindersPageState extends ConsumerState<RemindersPage> {
         nextTriggerAt: result.when,
         priority: result.priority,
         category: result.category,
-        repeatRule: result.repeatRule);
+        repeatRule: result.repeatRule,
+        projectId: projectId ?? '');
   }
 
   Future<void> _showPreferences(BuildContext context) async {

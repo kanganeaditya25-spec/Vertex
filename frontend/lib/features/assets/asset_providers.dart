@@ -29,7 +29,9 @@ class AssetState {
   final String viewMode;
   final List<String> selectedIds;
 
-  List<AssetModel> get visibleAssets => assets.where((asset) {
+  List<AssetModel> get visibleAssets => visibleAssetsFor(null);
+
+  List<AssetModel> visibleAssetsFor(String? projectId) => assets.where((asset) {
         if (selectedFolder == 'trash' && !asset.trashed) {
           return false;
         }
@@ -56,6 +58,9 @@ class AssetState {
         if (selectedType != 'all' && asset.assetType != selectedType) {
           return false;
         }
+        if (projectId != null && asset.projectId != projectId) {
+          return false;
+        }
         if (query.trim().isEmpty) return true;
         final text = [
           asset.name,
@@ -66,6 +71,9 @@ class AssetState {
         ].join(' ').toLowerCase();
         return text.contains(query.trim().toLowerCase());
       }).toList();
+
+  AssetState forProject(String? projectId) =>
+      projectId == null ? this : copyWith(assets: visibleAssetsFor(projectId));
 
   AssetState copyWith(
           {List<AssetModel>? assets,
@@ -120,11 +128,12 @@ class AssetController extends AsyncNotifier<AssetState> {
     state = AsyncData(await _loadState(current: current));
   }
 
-  Future<int> importFiles(FilePickerResult result) async {
+  Future<int> importFiles(FilePickerResult result,
+      {String projectId = ''}) async {
     if (_repository == null) return 0;
     var imported = 0;
     for (final file in result.files) {
-      final asset = await _repository!.importFile(file);
+      final asset = await _repository!.importFile(file, projectId: projectId);
       if (asset != null) imported++;
     }
     await refresh();
@@ -135,10 +144,15 @@ class AssetController extends AsyncNotifier<AssetState> {
       {required String name,
       required String url,
       String description = '',
-      List<String> tags = const []}) async {
+      List<String> tags = const [],
+      String projectId = ''}) async {
     if (_repository == null) return null;
-    final asset = await _repository!
-        .createUrl(name: name, url: url, description: description, tags: tags);
+    final asset = await _repository!.createUrl(
+        name: name,
+        url: url,
+        description: description,
+        tags: tags,
+        projectId: projectId);
     await refresh();
     return asset;
   }

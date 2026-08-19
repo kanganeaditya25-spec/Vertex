@@ -7,7 +7,8 @@ import 'note_models.dart';
 import 'notes_providers.dart';
 
 class NotesPage extends ConsumerWidget {
-  const NotesPage({super.key});
+  const NotesPage({super.key, this.projectId});
+  final String? projectId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -18,8 +19,9 @@ class NotesPage extends ConsumerWidget {
         actions: [
           IconButton(
               tooltip: 'New note',
-              onPressed: () =>
-                  ref.read(notesControllerProvider.notifier).createNote(),
+              onPressed: () => ref
+                  .read(notesControllerProvider.notifier)
+                  .createNote(projectId: projectId),
               icon: const Icon(Icons.note_add_rounded)),
         ],
       ),
@@ -33,25 +35,28 @@ class NotesPage extends ConsumerWidget {
         error: (error, _) => _NotesError(
             message: error.toString(),
             retry: () => ref.invalidate(notesControllerProvider)),
-        data: (state) => _NotesWorkspace(state: state),
+        data: (state) => _NotesWorkspace(state: state, projectId: projectId),
       ),
     );
   }
 }
 
 class _NotesWorkspace extends ConsumerWidget {
-  const _NotesWorkspace({required this.state});
+  const _NotesWorkspace({required this.state, this.projectId});
   final NotesState state;
+  final String? projectId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final wide = MediaQuery.sizeOf(context).width >= 900;
-    final list = _NoteList(state: state);
-    final editor = state.selectedNote == null
+    final list = _NoteList(state: state, projectId: projectId);
+    final selectedNote = state.selectedNoteFor(projectId);
+    final editor = selectedNote == null
         ? _EmptyNotesEditor(
-            onCreate: () =>
-                ref.read(notesControllerProvider.notifier).createNote())
-        : _NoteEditor(note: state.selectedNote!);
+            onCreate: () => ref
+                .read(notesControllerProvider.notifier)
+                .createNote(projectId: projectId))
+        : _NoteEditor(note: selectedNote);
     if (wide) {
       return Row(children: [
         SizedBox(width: 330, child: list),
@@ -68,11 +73,13 @@ class _NotesWorkspace extends ConsumerWidget {
 }
 
 class _NoteList extends ConsumerWidget {
-  const _NoteList({required this.state});
+  const _NoteList({required this.state, this.projectId});
   final NotesState state;
+  final String? projectId;
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final controller = ref.read(notesControllerProvider.notifier);
+    final visibleNotes = state.visibleNotesFor(projectId);
     return Padding(
         padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
         child: Column(children: [
@@ -118,12 +125,12 @@ class _NoteList extends ConsumerWidget {
               ])),
           const SizedBox(height: 8),
           Expanded(
-              child: state.visibleNotes.isEmpty
+              child: visibleNotes.isEmpty
                   ? const Center(child: Text('No notes match this view.'))
                   : ListView.builder(
-                      itemCount: state.visibleNotes.length,
+                      itemCount: visibleNotes.length,
                       itemBuilder: (context, index) {
-                        final note = state.visibleNotes[index];
+                        final note = visibleNotes[index];
                         return _NoteListTile(
                             note: note, selected: note.id == state.selectedId);
                       })),
