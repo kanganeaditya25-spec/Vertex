@@ -6,6 +6,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../models/dashboard_models.dart';
 import '../../providers/dashboard_providers.dart';
+import 'focusflow_coach.dart';
+import 'quick_capture_sheet.dart';
 
 class DashboardPage extends ConsumerStatefulWidget {
   const DashboardPage({super.key});
@@ -68,6 +70,7 @@ class _DashboardView extends ConsumerWidget {
     final todayTasks = snapshot.tasks;
     final completedTasks = todayTasks.where((task) => task.isCompleted).length;
     final pendingTasks = todayTasks.length - completedTasks;
+    final mission = FocusFlowCoach.recommend(snapshot);
     final activeGoals =
         snapshot.goals.where((goal) => goal.progress < 100).toList();
     final topTasks = [...todayTasks]..sort(_comparePriority);
@@ -92,64 +95,37 @@ class _DashboardView extends ConsumerWidget {
             title: const Text('FocusFlow AI'),
             actions: [
               IconButton(
-                tooltip: 'Open Analytics & Insights',
-                onPressed: () => context.push('/analytics'),
-                icon: const Icon(Icons.insights_rounded),
-              ),
-              IconButton(
-                tooltip: 'Open Asset Library',
-                onPressed: () => context.push('/assets'),
-                icon: const Icon(Icons.folder_copy_outlined),
-              ),
-              IconButton(
-                tooltip: 'Open Reminder Center',
-                onPressed: () => context.push('/reminders'),
-                icon: const Icon(Icons.notifications_active_outlined),
-              ),
-              IconButton(
-                tooltip: 'Open Knowledge Explorer',
-                onPressed: () => context.push('/knowledge-graph'),
-                icon: const Icon(Icons.hub_outlined),
-              ),
-              IconButton(
-                tooltip: 'Open Settings & Personalization',
-                onPressed: () => context.push('/settings'),
-                icon: const Icon(Icons.settings_outlined),
-              ),
-              IconButton(
-                tooltip: 'Open Automation Engine',
-                onPressed: () => context.push('/automation'),
-                icon: const Icon(Icons.account_tree_outlined),
-              ),
-              IconButton(
-                tooltip: 'Open Workspaces & Projects',
-                onPressed: () => context.push('/organization'),
-                icon: const Icon(Icons.account_tree_rounded),
-              ),
-              IconButton(
-                tooltip: 'Open AI Executive Assistant',
-                onPressed: () => context.push('/assistant'),
-                icon: const Icon(Icons.auto_awesome_rounded),
-              ),
-              IconButton(
-                tooltip: 'Open Second Brain Notes',
-                onPressed: () => context.push('/notes'),
-                icon: const Icon(Icons.menu_book_rounded),
-              ),
-              IconButton(
-                tooltip: 'Open Calendar & Time Intelligence',
-                onPressed: () => context.push('/calendar'),
-                icon: const Icon(Icons.calendar_month_rounded),
-              ),
-              IconButton(
-                tooltip: 'Open Smart Tasks',
-                onPressed: () => context.push('/tasks'),
-                icon: const Icon(Icons.checklist_rounded),
-              ),
-              IconButton(
                 tooltip: 'Open Global Search',
                 onPressed: () => context.push('/search'),
                 icon: const Icon(Icons.search),
+              ),
+              IconButton(
+                tooltip: 'Quick Capture',
+                onPressed: () => _showQuickCapture(context),
+                icon: const Icon(Icons.add_circle_outline),
+              ),
+              PopupMenuButton<String>(
+                tooltip: 'More destinations',
+                onSelected: (route) => context.push(route),
+                itemBuilder: (context) => const [
+                  PopupMenuItem(value: '/tasks', child: Text('Tasks')),
+                  PopupMenuItem(value: '/calendar', child: Text('Calendar')),
+                  PopupMenuItem(
+                      value: '/organization', child: Text('Projects & Goals')),
+                  PopupMenuItem(value: '/notes', child: Text('Notes')),
+                  PopupMenuItem(value: '/assets', child: Text('Assets')),
+                  PopupMenuItem(value: '/reminders', child: Text('Reminders')),
+                  PopupMenuItem(value: '/analytics', child: Text('Analytics')),
+                  PopupMenuItem(
+                      value: '/assistant', child: Text('AI Assistant')),
+                  PopupMenuItem(
+                      value: '/knowledge-graph',
+                      child: Text('Knowledge Explorer')),
+                  PopupMenuItem(
+                      value: '/automation', child: Text('Automation')),
+                  PopupMenuItem(value: '/settings', child: Text('Settings')),
+                ],
+                icon: const Icon(Icons.more_horiz),
               ),
               IconButton(
                 tooltip: 'Notifications',
@@ -176,6 +152,15 @@ class _DashboardView extends ConsumerWidget {
                   activeGoal: activeGoals.isEmpty ? null : activeGoals.first,
                 ),
                 const SizedBox(height: 20),
+                _MissionCard(
+                  recommendation: mission,
+                  focusRunning: snapshot.focus.isRunning,
+                  onStartFocus:
+                      snapshot.focus.isRunning ? null : controller.startFocus,
+                  onOpenTasks: () => context.push('/tasks'),
+                  onQuickCapture: () => _showQuickCapture(context),
+                ),
+                const SizedBox(height: 16),
                 _ResponsiveGrid(
                   columns: isDesktop ? 2 : 1,
                   children: [
@@ -197,7 +182,9 @@ class _DashboardView extends ConsumerWidget {
                 if (visible.contains('focus'))
                   _FocusCard(focus: snapshot.focus, controller: controller),
                 const SizedBox(height: 16),
-                _QuickActions(controller: controller),
+                _QuickActions(
+                    controller: controller,
+                    onQuickCapture: () => _showQuickCapture(context)),
                 const SizedBox(height: 16),
                 _ResponsiveGrid(
                   columns: isDesktop ? 2 : 1,
@@ -207,7 +194,11 @@ class _DashboardView extends ConsumerWidget {
                     if (visible.contains('recent_notes'))
                       _RecentNotesCard(notes: snapshot.notes),
                     if (visible.contains('projects'))
-                      _ProjectsCard(projects: snapshot.projects),
+                      _ProjectsCard(
+                        projects: snapshot.projects,
+                        onProjectTap: (projectId) =>
+                            context.push('/tasks?project=$projectId'),
+                      ),
                     if (visible.contains('habits'))
                       _HabitsCard(habits: snapshot.habits),
                     if (visible.contains('analytics'))
@@ -279,6 +270,101 @@ class _GreetingHeader extends StatelessWidget {
             ),
           ],
         ],
+      ),
+    );
+  }
+}
+
+class _MissionCard extends StatelessWidget {
+  const _MissionCard({
+    required this.recommendation,
+    required this.focusRunning,
+    required this.onStartFocus,
+    required this.onOpenTasks,
+    required this.onQuickCapture,
+  });
+
+  final MissionRecommendation recommendation;
+  final bool focusRunning;
+  final VoidCallback? onStartFocus;
+  final VoidCallback onOpenTasks;
+  final VoidCallback onQuickCapture;
+
+  @override
+  Widget build(BuildContext context) {
+    final task = recommendation.task;
+    return Semantics(
+      container: true,
+      label: 'Today’s Mission',
+      child: Card(
+        color: Theme.of(context).colorScheme.primaryContainer,
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.explore_outlined,
+                      color: Theme.of(context).colorScheme.onPrimaryContainer),
+                  const SizedBox(width: 8),
+                  Expanded(
+                      child: Text('Today’s Mission',
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleMedium
+                              ?.copyWith(fontWeight: FontWeight.w700))),
+                  if (recommendation.overloaded)
+                    const Chip(label: Text('Rebalance')),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Text(task?.title ?? 'Choose the next meaningful step',
+                  style: Theme.of(context)
+                      .textTheme
+                      .headlineSmall
+                      ?.copyWith(fontWeight: FontWeight.w700)),
+              const SizedBox(height: 6),
+              Text(recommendation.message),
+              const SizedBox(height: 8),
+              Text(
+                  task == null
+                      ? recommendation.reason
+                      : '${recommendation.reason} · ${task.estimatedMinutes > 0 ? '${task.estimatedMinutes} min' : 'short focused step'}',
+                  style: Theme.of(context).textTheme.bodySmall),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  FilledButton.icon(
+                    onPressed: task == null ? onQuickCapture : onStartFocus,
+                    icon: Icon(focusRunning
+                        ? Icons.pause_circle_outline
+                        : task == null
+                            ? Icons.add
+                            : Icons.play_arrow),
+                    label: Text(focusRunning
+                        ? 'Focus active'
+                        : task == null
+                            ? 'Capture next step'
+                            : 'Start focus'),
+                  ),
+                  const SizedBox(width: 8),
+                  OutlinedButton.icon(
+                      onPressed: onOpenTasks,
+                      icon: const Icon(Icons.checklist),
+                      label: Text(
+                          task == null ? 'Review tasks' : 'See all tasks')),
+                ],
+              ),
+              if (recommendation.pendingCount > 0) ...[
+                const SizedBox(height: 12),
+                Text(
+                    '${recommendation.pendingCount} unfinished · about ${recommendation.estimatedMinutes} minutes planned',
+                    style: Theme.of(context).textTheme.labelMedium),
+              ],
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -449,9 +535,10 @@ class _FocusCard extends StatelessWidget {
 }
 
 class _QuickActions extends StatelessWidget {
-  const _QuickActions({required this.controller});
+  const _QuickActions({required this.controller, required this.onQuickCapture});
 
   final DashboardController controller;
+  final VoidCallback onQuickCapture;
 
   @override
   Widget build(BuildContext context) {
@@ -462,6 +549,11 @@ class _QuickActions extends StatelessWidget {
         spacing: 8,
         runSpacing: 8,
         children: [
+          ActionChip(
+            avatar: const Icon(Icons.add_circle_outline, size: 18),
+            label: const Text('Quick capture'),
+            onPressed: onQuickCapture,
+          ),
           ActionChip(
             avatar: const Icon(Icons.timer_outlined, size: 18),
             label: const Text('Start focus'),
@@ -517,17 +609,10 @@ class _QuickActions extends StatelessWidget {
             label: const Text('Reminders'),
             onPressed: () => context.push('/reminders'),
           ),
-          const ActionChip(
-            avatar: Icon(Icons.note_add_outlined, size: 18),
-            label: Text('New note'),
-          ),
-          const ActionChip(
-            avatar: Icon(Icons.auto_awesome_outlined, size: 18),
-            label: Text('AI plan'),
-          ),
-          const ActionChip(
-            avatar: Icon(Icons.mic_none, size: 18),
-            label: Text('Voice command'),
+          ActionChip(
+            avatar: const Icon(Icons.search, size: 18),
+            label: const Text('Command palette'),
+            onPressed: () => context.push('/search?palette=1'),
           ),
         ],
       ),
@@ -605,9 +690,10 @@ class _RecentNotesCard extends StatelessWidget {
 }
 
 class _ProjectsCard extends StatelessWidget {
-  const _ProjectsCard({required this.projects});
+  const _ProjectsCard({required this.projects, required this.onProjectTap});
 
   final List<ProjectSummary> projects;
+  final ValueChanged<String> onProjectTap;
 
   @override
   Widget build(BuildContext context) {
@@ -623,22 +709,26 @@ class _ProjectsCard extends StatelessWidget {
               children: projects
                   .take(4)
                   .map(
-                    (project) => Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: Column(
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(child: Text(project.name)),
-                              if (project.blocked)
-                                const Chip(label: Text('Blocked')),
-                            ],
-                          ),
-                          const SizedBox(height: 6),
-                          LinearProgressIndicator(
-                            value: project.progress.clamp(0, 1).toDouble(),
-                          ),
-                        ],
+                    (project) => InkWell(
+                      onTap: () => onProjectTap(project.id),
+                      borderRadius: BorderRadius.circular(8),
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Column(
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(child: Text(project.name)),
+                                if (project.blocked)
+                                  const Chip(label: Text('Blocked')),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            LinearProgressIndicator(
+                              value: project.progress.clamp(0, 1).toDouble(),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   )
@@ -966,6 +1056,15 @@ String _formatTimer(int seconds) {
   final minutes = (seconds % 3600) ~/ 60;
   final remaining = seconds % 60;
   return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${remaining.toString().padLeft(2, '0')}';
+}
+
+void _showQuickCapture(BuildContext context) {
+  showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    showDragHandle: true,
+    builder: (_) => const QuickCaptureSheet(),
+  );
 }
 
 void _showNotifications(BuildContext context) {
