@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'organization_repository.dart';
 import '../features/tasks/task_models.dart';
 
 class TaskRepository {
@@ -42,34 +43,45 @@ class TaskRepository {
 
   Future<TaskModel> create(TaskModel task) async {
     final tasks = await loadTasks();
-    final next =
-        task.copyWith(syncStatus: 'pending', version: task.version + 1);
+    final next = task.copyWith(
+      syncStatus: 'pending',
+      version: task.version + 1,
+    );
     await _saveTasks([...tasks, next]);
     await _queue(next, 'create');
+    await _syncProjectLinks(next);
     return next;
   }
 
   Future<TaskModel> update(TaskModel task) async {
     final tasks = await loadTasks();
-    final next =
-        task.copyWith(syncStatus: 'pending', version: task.version + 1);
-    final updated =
-        tasks.map((item) => item.id == task.id ? next : item).toList();
+    final previous = tasks.where((item) => item.id == task.id).firstOrNull;
+    final next = task.copyWith(
+      syncStatus: 'pending',
+      version: task.version + 1,
+    );
+    final updated = tasks
+        .map((item) => item.id == task.id ? next : item)
+        .toList();
     await _saveTasks(updated);
     await _queue(next, 'update');
+    await _syncProjectLinks(next, previousProjectId: previous?.project);
     return next;
   }
 
   Future<void> remove(TaskModel task) async {
     final next = task.copyWith(
-        status: 'deleted',
-        deletedAt: DateTime.now(),
-        syncStatus: 'pending',
-        version: task.version + 1);
+      status: 'deleted',
+      deletedAt: DateTime.now(),
+      syncStatus: 'pending',
+      version: task.version + 1,
+    );
     final tasks = await loadTasks();
     await _saveTasks(
-        tasks.map((item) => item.id == task.id ? next : item).toList());
+      tasks.map((item) => item.id == task.id ? next : item).toList(),
+    );
     await _queue(next, 'delete');
+    await _syncProjectLinks(next, previousProjectId: task.project);
   }
 
   Future<void> replaceAll(List<TaskModel> tasks) => _saveTasks(tasks);
@@ -78,7 +90,59 @@ class TaskRepository {
 
   Future<void> _saveTasks(List<TaskModel> tasks) async {
     await _preferences.setString(
-        _tasksKey, jsonEncode(tasks.map((task) => task.toJson()).toList()));
+      _tasksKey,
+      jsonEncode(tasks.map((task) => task.toJson()).toList()),
+    );
+  }
+
+  Future<void> reconcileProjectLinks() async {
+    final tasks = await loadTasks();
+    final organization = OrganizationRepository(_preferences);
+    final projects = await organization.loadProjects();
+    for (final project in projects) {
+      final expected = tasks
+          .where((task) => task.project == project.id && !task.isDeleted)
+          .map((task) => task.id)
+          .toSet();
+      final current = project.linkedTaskIds.toSet();
+      if (expected.length != current.length || !expected.containsAll(current)) {
+        await organization.saveProject(
+          project.copyWith(linkedTaskIds: expected.toList()),
+        );
+      }
+    }
+  }
+
+  Future<void> _syncProjectLinks(
+    TaskModel task, {
+    String? previousProjectId,
+  }) async {
+    final organization = OrganizationRepository(_preferences);
+    final projects = await organization.loadProjects();
+    final affected = <String>{
+      if (previousProjectId != null && previousProjectId.isNotEmpty)
+        previousProjectId,
+      if (task.project != null && task.project!.isNotEmpty) task.project!,
+    };
+    for (final projectId in affected) {
+      final project = projects
+          .where((item) => item.id == projectId)
+          .firstOrNull;
+      if (project == null) continue;
+      final linked = project.linkedTaskIds.toSet();
+      if (previousProjectId == projectId || task.isDeleted) {
+        linked.remove(task.id);
+      }
+      if (!task.isDeleted && task.project == projectId) {
+        linked.add(task.id);
+      }
+      if (linked.length != project.linkedTaskIds.length ||
+          !linked.containsAll(project.linkedTaskIds)) {
+        await organization.saveProject(
+          project.copyWith(linkedTaskIds: linked.toList()),
+        );
+      }
+    }
   }
 
   Future<void> _queue(TaskModel task, String operation) async {

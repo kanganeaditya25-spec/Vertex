@@ -15,14 +15,14 @@ class ProductivityApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsControllerProvider).valueOrNull;
-    final accent = _accentColor(settings?.accentColor ?? 'indigo');
+    final accent = _accentColor(settings?.accentColor ?? 'teal');
     final scale = settings?.fontScale ?? 1.0;
     return MaterialApp.router(
       title: 'Productivity Dashboard',
       routerConfig: appRouter,
-      theme: _theme(accent, Brightness.light, scale),
-      darkTheme: _theme(accent, Brightness.dark, scale),
-      themeMode: _themeMode('${settings?.themeMode ?? 'system'}'),
+      theme: _theme(accent, scale),
+      darkTheme: _theme(accent, scale),
+      themeMode: ThemeMode.light,
       builder: (context, child) => MediaQuery(
         data: MediaQuery.of(context)
             .copyWith(textScaler: TextScaler.linear(scale)),
@@ -38,42 +38,50 @@ class ProductivityApp extends ConsumerWidget {
   }
 }
 
-ThemeData _theme(Color accent, Brightness brightness, double scale) {
+ThemeData _theme(Color accent, double scale) {
+  final scheme = ColorScheme.fromSeed(
+    seedColor: accent,
+    brightness: Brightness.light,
+    surface: const Color(0xFFF7FAF8),
+  );
   final base = ThemeData(
     useMaterial3: true,
-    colorSchemeSeed: accent,
-    brightness: brightness,
+    colorScheme: scheme,
+    scaffoldBackgroundColor: const Color(0xFFF7FAF8),
+    canvasColor: const Color(0xFFF7FAF8),
   );
-  final foreground = base.colorScheme.onSurface;
+  final foreground = scheme.onSurface;
   return base.copyWith(
     textTheme: base.textTheme.apply(
       fontSizeFactor: scale,
       bodyColor: foreground,
       displayColor: foreground,
     ),
-    scaffoldBackgroundColor: base.colorScheme.surface,
     appBarTheme: AppBarTheme(
-      backgroundColor: base.colorScheme.surface,
+      backgroundColor: const Color(0xFFF7FAF8),
       foregroundColor: foreground,
+      elevation: 0,
+      surfaceTintColor: Colors.transparent,
     ),
     cardTheme: CardThemeData(
-      color: base.colorScheme.surfaceContainer,
+      color: Colors.white,
+      surfaceTintColor: Colors.transparent,
       margin: EdgeInsets.zero,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: const BorderSide(color: Color(0xFFE2EAE5)),
+      ),
     ),
+    dividerTheme: const DividerThemeData(color: Color(0xFFE2EAE5)),
   );
 }
 
-ThemeMode _themeMode(String mode) => switch (mode) {
-      'light' => ThemeMode.light,
-      'dark' => ThemeMode.dark,
-      _ => ThemeMode.system,
-    };
-
 Color _accentColor(String name) => switch (name) {
-      'teal' => const Color(0xFF0F766E),
-      'amber' => const Color(0xFFB45309),
-      'blue' => const Color(0xFF0369A1),
-      'violet' => const Color(0xFF6D28D9),
-      'rose' => const Color(0xFFBE123C),
-      _ => const Color(0xFF4F46E5),
-    };
+  'teal' => const Color(0xFF0F766E),
+  'amber' => const Color(0xFFB45309),
+  'blue' => const Color(0xFF0369A1),
+  'violet' => const Color(0xFF6D28D9),
+  'rose' => const Color(0xFFBE123C),
+  _ => const Color(0xFF4F46E5),
+};

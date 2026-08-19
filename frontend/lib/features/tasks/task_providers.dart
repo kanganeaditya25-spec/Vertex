@@ -4,17 +4,19 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../repositories/task_repository.dart';
 import 'task_models.dart';
 
-final taskControllerProvider =
-    AsyncNotifierProvider<TaskController, TaskState>(TaskController.new);
+final taskControllerProvider = AsyncNotifierProvider<TaskController, TaskState>(
+  TaskController.new,
+);
 
 class TaskState {
-  const TaskState(
-      {required this.tasks,
-      this.query = '',
-      this.statusFilter,
-      this.priorityFilter,
-      this.sortBy = 'priority',
-      this.selectedIds = const {}});
+  const TaskState({
+    required this.tasks,
+    this.query = '',
+    this.statusFilter,
+    this.priorityFilter,
+    this.sortBy = 'priority',
+    this.selectedIds = const {},
+  });
 
   final List<TaskModel> tasks;
   final String query;
@@ -28,7 +30,8 @@ class TaskState {
   List<TaskModel> visibleTasksFor(String? projectId) {
     final normalized = query.trim().toLowerCase();
     final filtered = tasks.where((task) {
-      final matchesQuery = normalized.isEmpty ||
+      final matchesQuery =
+          normalized.isEmpty ||
           task.title.toLowerCase().contains(normalized) ||
           task.description.toLowerCase().contains(normalized) ||
           task.tags.any((tag) => tag.contains(normalized));
@@ -44,8 +47,9 @@ class TaskState {
     }).toList();
     filtered.sort((a, b) {
       if (sortBy == 'deadline') {
-        return (a.deadline ?? DateTime(9999))
-            .compareTo(b.deadline ?? DateTime(9999));
+        return (a.deadline ?? DateTime(9999)).compareTo(
+          b.deadline ?? DateTime(9999),
+        );
       }
       if (sortBy == 'created') {
         return b.createdAt.compareTo(a.createdAt);
@@ -65,24 +69,25 @@ class TaskState {
       .where((task) => task.priority == 'critical' || task.priority == 'urgent')
       .length;
 
-  TaskState copyWith(
-          {List<TaskModel>? tasks,
-          String? query,
-          String? statusFilter,
-          String? priorityFilter,
-          String? sortBy,
-          Set<String>? selectedIds,
-          bool clearStatus = false,
-          bool clearPriority = false}) =>
-      TaskState(
-        tasks: tasks ?? this.tasks,
-        query: query ?? this.query,
-        statusFilter: clearStatus ? null : statusFilter ?? this.statusFilter,
-        priorityFilter:
-            clearPriority ? null : priorityFilter ?? this.priorityFilter,
-        sortBy: sortBy ?? this.sortBy,
-        selectedIds: selectedIds ?? this.selectedIds,
-      );
+  TaskState copyWith({
+    List<TaskModel>? tasks,
+    String? query,
+    String? statusFilter,
+    String? priorityFilter,
+    String? sortBy,
+    Set<String>? selectedIds,
+    bool clearStatus = false,
+    bool clearPriority = false,
+  }) => TaskState(
+    tasks: tasks ?? this.tasks,
+    query: query ?? this.query,
+    statusFilter: clearStatus ? null : statusFilter ?? this.statusFilter,
+    priorityFilter: clearPriority
+        ? null
+        : priorityFilter ?? this.priorityFilter,
+    sortBy: sortBy ?? this.sortBy,
+    selectedIds: selectedIds ?? this.selectedIds,
+  );
 }
 
 class TaskController extends AsyncNotifier<TaskState> {
@@ -92,50 +97,56 @@ class TaskController extends AsyncNotifier<TaskState> {
   Future<TaskState> build() async {
     final preferences = await SharedPreferences.getInstance();
     _repository = TaskRepository(preferences);
-    return TaskState(tasks: await _repository!.loadTasks());
+    final tasks = await _repository!.loadTasks();
+    await _repository!.reconcileProjectLinks();
+    return TaskState(tasks: tasks);
   }
 
   Future<void> setQuery(String query) async =>
       _setState((current) => current.copyWith(query: query));
-  Future<void> setStatusFilter(String? filter) async =>
-      _setState((current) => filter == null
-          ? current.copyWith(clearStatus: true)
-          : current.copyWith(statusFilter: filter));
-  Future<void> setPriorityFilter(String? filter) async =>
-      _setState((current) => filter == null
-          ? current.copyWith(clearPriority: true)
-          : current.copyWith(priorityFilter: filter));
+  Future<void> setStatusFilter(String? filter) async => _setState(
+    (current) => filter == null
+        ? current.copyWith(clearStatus: true)
+        : current.copyWith(statusFilter: filter),
+  );
+  Future<void> setPriorityFilter(String? filter) async => _setState(
+    (current) => filter == null
+        ? current.copyWith(clearPriority: true)
+        : current.copyWith(priorityFilter: filter),
+  );
   Future<void> setSort(String sort) async =>
       _setState((current) => current.copyWith(sortBy: sort));
 
-  Future<void> createTask(
-      {required String title,
-      String description = '',
-      String priority = 'medium',
-      String category = 'general',
-      DateTime? deadline,
-      int estimatedMinutes = 0,
-      List<String> tags = const [],
-      String? projectId,
-      String? workspaceId,
-      String? goalId}) async {
+  Future<void> createTask({
+    required String title,
+    String description = '',
+    String priority = 'medium',
+    String category = 'general',
+    DateTime? deadline,
+    int estimatedMinutes = 0,
+    List<String> tags = const [],
+    String? projectId,
+    String? workspaceId,
+    String? goalId,
+  }) async {
     final current = state.valueOrNull;
     if (current == null || _repository == null) return;
     final now = DateTime.now();
     final task = TaskModel(
-        id: 'local-${now.microsecondsSinceEpoch}',
-        title: title.trim(),
-        description: description.trim(),
-        priority: priority,
-        category: category,
-        deadline: deadline,
-        estimatedMinutes: estimatedMinutes,
-        tags: tags,
-        project: projectId,
-        workspace: workspaceId,
-        goalId: goalId,
-        createdAt: now,
-        updatedAt: now);
+      id: 'local-${now.microsecondsSinceEpoch}',
+      title: title.trim(),
+      description: description.trim(),
+      priority: priority,
+      category: category,
+      deadline: deadline,
+      estimatedMinutes: estimatedMinutes,
+      tags: tags,
+      project: projectId,
+      workspace: workspaceId,
+      goalId: goalId,
+      createdAt: now,
+      updatedAt: now,
+    );
     final saved = await _repository!.create(task);
     state = AsyncData(current.copyWith(tasks: [...current.tasks, saved]));
   }
@@ -144,45 +155,58 @@ class TaskController extends AsyncNotifier<TaskState> {
     final current = state.valueOrNull;
     if (current == null || _repository == null) return;
     final saved = await _repository!.update(task);
-    state = AsyncData(current.copyWith(
+    state = AsyncData(
+      current.copyWith(
         tasks: current.tasks
             .map((item) => item.id == saved.id ? saved : item)
-            .toList()));
+            .toList(),
+      ),
+    );
   }
 
   Future<void> toggleComplete(TaskModel task) async {
     final status = task.isCompleted ? 'inbox' : 'completed';
-    await updateTask(task.copyWith(
+    await updateTask(
+      task.copyWith(
         status: status,
         completionPercent: status == 'completed' ? 100 : 0,
         completedAt: status == 'completed' ? DateTime.now() : null,
-        clearCompletedAt: status != 'completed'));
+        clearCompletedAt: status != 'completed',
+      ),
+    );
   }
 
   Future<void> archive(TaskModel task) async =>
       updateTask(task.copyWith(status: 'archived', archivedAt: DateTime.now()));
-  Future<void> restore(TaskModel task) async => updateTask(task.copyWith(
-      status: 'inbox', clearArchivedAt: true, clearDeletedAt: true));
+  Future<void> restore(TaskModel task) async => updateTask(
+    task.copyWith(status: 'inbox', clearArchivedAt: true, clearDeletedAt: true),
+  );
 
   Future<void> deleteTask(TaskModel task) async {
     final current = state.valueOrNull;
     if (current == null || _repository == null) return;
     await _repository!.remove(task);
-    state = AsyncData(current.copyWith(
-        tasks: current.tasks.where((item) => item.id != task.id).toList()));
+    state = AsyncData(
+      current.copyWith(
+        tasks: current.tasks.where((item) => item.id != task.id).toList(),
+      ),
+    );
   }
 
   Future<void> duplicate(TaskModel task) async {
     final current = state.valueOrNull;
     if (current == null || _repository == null) return;
     final now = DateTime.now();
-    final duplicate = await _repository!.create(task.copyWith(
+    final duplicate = await _repository!.create(
+      task.copyWith(
         title: '${task.title} (copy)',
         status: 'inbox',
         pinned: false,
         favorite: false,
         createdAt: now,
-        updatedAt: now));
+        updatedAt: now,
+      ),
+    );
     state = AsyncData(current.copyWith(tasks: [...current.tasks, duplicate]));
   }
 
@@ -207,12 +231,16 @@ class TaskController extends AsyncNotifier<TaskState> {
   Future<void> bulkComplete() async {
     final current = state.valueOrNull;
     if (current == null) return;
-    for (final task in current.tasks
-        .where((item) => current.selectedIds.contains(item.id))) {
-      await updateTask(task.copyWith(
+    for (final task in current.tasks.where(
+      (item) => current.selectedIds.contains(item.id),
+    )) {
+      await updateTask(
+        task.copyWith(
           status: 'completed',
           completionPercent: 100,
-          completedAt: DateTime.now()));
+          completedAt: DateTime.now(),
+        ),
+      );
     }
     await clearSelection();
   }

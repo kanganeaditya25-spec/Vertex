@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
 
+import '../tasks/task_providers.dart';
 import 'organization_models.dart';
 import 'organization_providers.dart';
 
@@ -83,11 +84,11 @@ class _OrganizationSidebar extends ConsumerWidget {
         children: [
           Row(
             children: [
-              Text('System map',
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleMedium
-                      ?.copyWith(fontWeight: FontWeight.w800)),
+              Text(
+                'System map',
+                style: Theme.of(context).textTheme.titleMedium
+                    ?.copyWith(fontWeight: FontWeight.w800),
+              ),
               const Spacer(),
               IconButton(
                 tooltip: 'New workspace',
@@ -97,11 +98,11 @@ class _OrganizationSidebar extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 8),
-          Text('WORKSPACES',
-              style: Theme.of(context)
-                  .textTheme
-                  .labelSmall
-                  ?.copyWith(letterSpacing: 1.2, fontWeight: FontWeight.w700)),
+          Text(
+            'WORKSPACES',
+            style: Theme.of(context).textTheme.labelSmall
+                ?.copyWith(letterSpacing: 1.2, fontWeight: FontWeight.w700),
+          ),
           Expanded(
             child: ListView(
               children: [
@@ -111,21 +112,32 @@ class _OrganizationSidebar extends ConsumerWidget {
                     leading: CircleAvatar(
                       radius: 14,
                       backgroundColor: workspace.accentColor,
-                      child: const Icon(Icons.workspaces_outlined,
-                          size: 16, color: Colors.white),
+                      child: const Icon(
+                        Icons.workspaces_outlined,
+                        size: 16,
+                        color: Colors.white,
+                      ),
                     ),
-                    title: Text(workspace.name,
-                        maxLines: 1, overflow: TextOverflow.ellipsis),
+                    title: Text(
+                      workspace.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                     trailing: Text(
-                        '${state.projects.where((project) => project.workspaceId == workspace.id && !project.archived).length}'),
+                      '${state.projects.where((project) => project.workspaceId == workspace.id && !project.archived).length}',
+                    ),
                     onTap: () => controller.selectWorkspace(workspace.id),
                   ),
                 const Divider(),
                 Row(
                   children: [
-                    Text('PROJECTS',
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            letterSpacing: 1.2, fontWeight: FontWeight.w700)),
+                    Text(
+                      'PROJECTS',
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        letterSpacing: 1.2,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                     const Spacer(),
                     IconButton(
                       tooltip: 'New project',
@@ -138,20 +150,30 @@ class _OrganizationSidebar extends ConsumerWidget {
                   ListTile(
                     dense: true,
                     selected: project.id == state.selectedProjectId,
-                    leading: Icon(Icons.folder_special_outlined,
-                        color: project.accentColor),
-                    title: Text(project.name,
-                        maxLines: 1, overflow: TextOverflow.ellipsis),
+                    leading: Icon(
+                      Icons.folder_special_outlined,
+                      color: project.accentColor,
+                    ),
+                    title: Text(
+                      project.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                     subtitle: Text(
-                        '${project.progress.toStringAsFixed(0)}% · ${project.status.replaceAll('_', ' ')}'),
+                      '${project.progress.toStringAsFixed(0)}% · ${project.status.replaceAll('_', ' ')}',
+                    ),
                     onTap: () => controller.selectProject(project.id),
                   ),
                 const Divider(),
                 Row(
                   children: [
-                    Text('GOALS',
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            letterSpacing: 1.2, fontWeight: FontWeight.w700)),
+                    Text(
+                      'GOALS',
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        letterSpacing: 1.2,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                     const Spacer(),
                     IconButton(
                       tooltip: 'New goal',
@@ -163,12 +185,18 @@ class _OrganizationSidebar extends ConsumerWidget {
                 for (final goal in state.workspaceGoals)
                   ListTile(
                     dense: true,
-                    leading: const Icon(Icons.flag_outlined,
-                        color: Color(0xFFB45309)),
-                    title: Text(goal.title,
-                        maxLines: 1, overflow: TextOverflow.ellipsis),
+                    leading: const Icon(
+                      Icons.flag_outlined,
+                      color: Color(0xFFB45309),
+                    ),
+                    title: Text(
+                      goal.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                     subtitle: Text(
-                        '${goal.progress.toStringAsFixed(0)}% · ${goal.goalType.replaceAll('_', ' ')}'),
+                      '${goal.progress.toStringAsFixed(0)}% · ${goal.goalType.replaceAll('_', ' ')}',
+                    ),
                   ),
               ],
             ),
@@ -197,30 +225,33 @@ class _OrganizationContent extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             CircleAvatar(
-                radius: 24,
-                backgroundColor: workspace.accentColor,
-                child:
-                    const Icon(Icons.workspaces_outlined, color: Colors.white)),
+              radius: 24,
+              backgroundColor: workspace.accentColor,
+              child: const Icon(Icons.workspaces_outlined, color: Colors.white),
+            ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(workspace.name,
-                      style: Theme.of(context)
-                          .textTheme
-                          .headlineSmall
-                          ?.copyWith(fontWeight: FontWeight.w800)),
-                  Text(workspace.description.isEmpty
-                      ? 'A calm organizational layer for your work.'
-                      : workspace.description),
+                  Text(
+                    workspace.name,
+                    style: Theme.of(context).textTheme.headlineSmall
+                        ?.copyWith(fontWeight: FontWeight.w800),
+                  ),
+                  Text(
+                    workspace.description.isEmpty
+                        ? 'A calm organizational layer for your work.'
+                        : workspace.description,
+                  ),
                 ],
               ),
             ),
             FilledButton.tonalIcon(
-                onPressed: () => _newProject(context, ref),
-                icon: const Icon(Icons.add_rounded),
-                label: const Text('New project')),
+              onPressed: () => _newProject(context, ref),
+              icon: const Icon(Icons.add_rounded),
+              label: const Text('New project'),
+            ),
           ],
         ),
         const SizedBox(height: 18),
@@ -243,47 +274,53 @@ class _WorkspaceSummary extends StatelessWidget {
   Widget build(BuildContext context) {
     final projects = state.workspaceProjects;
     final goals = state.workspaceGoals;
-    final active =
-        projects.where((project) => project.status == 'active').length;
+    final active = projects
+        .where((project) => project.status == 'active')
+        .length;
     final progress = projects.isEmpty
         ? 0.0
         : projects.map((project) => project.progress).reduce((a, b) => a + b) /
-            projects.length;
+              projects.length;
     return Wrap(
       spacing: 12,
       runSpacing: 12,
       children: [
         _SummaryCard(
-            label: 'Projects',
-            value: '${projects.length}',
-            icon: Icons.folder_open_rounded,
-            color: const Color(0xFF0F766E)),
+          label: 'Projects',
+          value: '${projects.length}',
+          icon: Icons.folder_open_rounded,
+          color: const Color(0xFF0F766E),
+        ),
         _SummaryCard(
-            label: 'Active',
-            value: '$active',
-            icon: Icons.play_circle_outline_rounded,
-            color: const Color(0xFF0369A1)),
+          label: 'Active',
+          value: '$active',
+          icon: Icons.play_circle_outline_rounded,
+          color: const Color(0xFF0369A1),
+        ),
         _SummaryCard(
-            label: 'Goals',
-            value: '${goals.length}',
-            icon: Icons.flag_outlined,
-            color: const Color(0xFFB45309)),
+          label: 'Goals',
+          value: '${goals.length}',
+          icon: Icons.flag_outlined,
+          color: const Color(0xFFB45309),
+        ),
         _SummaryCard(
-            label: 'Average progress',
-            value: '${progress.toStringAsFixed(0)}%',
-            icon: Icons.trending_up_rounded,
-            color: const Color(0xFF4F46E5)),
+          label: 'Average progress',
+          value: '${progress.toStringAsFixed(0)}%',
+          icon: Icons.trending_up_rounded,
+          color: const Color(0xFF4F46E5),
+        ),
       ],
     );
   }
 }
 
 class _SummaryCard extends StatelessWidget {
-  const _SummaryCard(
-      {required this.label,
-      required this.value,
-      required this.icon,
-      required this.color});
+  const _SummaryCard({
+    required this.label,
+    required this.value,
+    required this.icon,
+    required this.color,
+  });
   final String label;
   final String value;
   final IconData icon;
@@ -303,11 +340,11 @@ class _SummaryCard extends StatelessWidget {
             children: [
               Icon(icon, color: color),
               const SizedBox(height: 12),
-              Text(value,
-                  style: Theme.of(context)
-                      .textTheme
-                      .headlineSmall
-                      ?.copyWith(fontWeight: FontWeight.w800, color: color)),
+              Text(
+                value,
+                style: Theme.of(context).textTheme.headlineSmall
+                    ?.copyWith(fontWeight: FontWeight.w800, color: color),
+              ),
               Text(label, style: Theme.of(context).textTheme.bodySmall),
             ],
           ),
@@ -331,20 +368,22 @@ class _WorkspaceEmpty extends ConsumerWidget {
           children: [
             const Icon(Icons.account_tree_outlined, size: 56),
             const SizedBox(height: 12),
-            Text('Build your system map',
-                style: Theme.of(context)
-                    .textTheme
-                    .titleLarge
-                    ?.copyWith(fontWeight: FontWeight.w800)),
+            Text(
+              'Build your system map',
+              style: Theme.of(context).textTheme.titleLarge
+                  ?.copyWith(fontWeight: FontWeight.w800),
+            ),
             const SizedBox(height: 8),
             const Text(
-                'Projects connect milestones, tasks, notes, calendar events, and goals. Start with a project and keep the hierarchy visible.',
-                textAlign: TextAlign.center),
+              'Projects connect milestones, tasks, notes, calendar events, and goals. Start with a project and keep the hierarchy visible.',
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: 16),
             FilledButton.icon(
-                onPressed: () => _newProject(context, ref),
-                icon: const Icon(Icons.add_rounded),
-                label: const Text('Create project')),
+              onPressed: () => _newProject(context, ref),
+              icon: const Icon(Icons.add_rounded),
+              label: const Text('Create project'),
+            ),
           ],
         ),
       ),
@@ -361,6 +400,12 @@ class _ProjectWorkspace extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final controller = ref.read(organizationControllerProvider.notifier);
     final milestones = state.milestonesFor(project.id);
+    final linkedTaskCount = ref
+        .watch(taskControllerProvider)
+        .maybeWhen(
+          data: (taskState) => taskState.visibleTasksFor(project.id).length,
+          orElse: () => project.linkedTaskIds.length,
+        );
     final views = [
       'dashboard',
       'list',
@@ -368,7 +413,7 @@ class _ProjectWorkspace extends ConsumerWidget {
       'timeline',
       'calendar',
       'table',
-      'gallery'
+      'gallery',
     ];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -377,36 +422,44 @@ class _ProjectWorkspace extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-                width: 8,
-                height: 56,
-                decoration: BoxDecoration(
-                    color: project.accentColor,
-                    borderRadius: BorderRadius.circular(4))),
+              width: 8,
+              height: 56,
+              decoration: BoxDecoration(
+                color: project.accentColor,
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(project.name,
-                      style: Theme.of(context)
-                          .textTheme
-                          .headlineSmall
-                          ?.copyWith(fontWeight: FontWeight.w800)),
-                  Text(project.description.isEmpty
-                      ? 'Project control center'
-                      : project.description),
+                  Text(
+                    project.name,
+                    style: Theme.of(context).textTheme.headlineSmall
+                        ?.copyWith(fontWeight: FontWeight.w800),
+                  ),
+                  Text(
+                    project.description.isEmpty
+                        ? 'Project control center'
+                        : project.description,
+                  ),
                   const SizedBox(height: 8),
-                  Wrap(spacing: 8, children: [
-                    Chip(label: Text(project.status.replaceAll('_', ' '))),
-                    Chip(label: Text(project.priority))
-                  ]),
+                  Wrap(
+                    spacing: 8,
+                    children: [
+                      Chip(label: Text(project.status.replaceAll('_', ' '))),
+                      Chip(label: Text(project.priority)),
+                    ],
+                  ),
                 ],
               ),
             ),
             OutlinedButton.icon(
-                onPressed: () => _newMilestone(context, ref),
-                icon: const Icon(Icons.flag_outlined),
-                label: const Text('Milestone')),
+              onPressed: () => _newMilestone(context, ref),
+              icon: const Icon(Icons.flag_outlined),
+              label: const Text('Milestone'),
+            ),
             PopupMenuButton<String>(
               tooltip: 'Project actions',
               onSelected: (action) async {
@@ -416,9 +469,10 @@ class _ProjectWorkspace extends ConsumerWidget {
                   await controller.archiveProject();
                 } else if (action == 'delete') {
                   final confirmed = await _confirmAction(
-                      context,
-                      'Delete project',
-                      'Remove this project from the local workspace?');
+                    context,
+                    'Delete project',
+                    'Remove this project from the local workspace?',
+                  );
                   if (confirmed) {
                     await controller.deleteProject();
                   }
@@ -430,11 +484,17 @@ class _ProjectWorkspace extends ConsumerWidget {
               },
               itemBuilder: (context) => const [
                 PopupMenuItem(
-                    value: 'manager', child: Text('Project manager plan')),
+                  value: 'manager',
+                  child: Text('Project manager plan'),
+                ),
                 PopupMenuItem(
-                    value: 'export', child: Text('Export project JSON')),
+                  value: 'export',
+                  child: Text('Export project JSON'),
+                ),
                 PopupMenuItem(
-                    value: 'duplicate', child: Text('Duplicate project')),
+                  value: 'duplicate',
+                  child: Text('Duplicate project'),
+                ),
                 PopupMenuItem(value: 'archive', child: Text('Archive project')),
                 PopupMenuItem(value: 'delete', child: Text('Delete locally')),
               ],
@@ -448,9 +508,10 @@ class _ProjectWorkspace extends ConsumerWidget {
             segments: [
               for (final view in views)
                 ButtonSegment(
-                    value: view,
-                    label: Text(view[0].toUpperCase() + view.substring(1)),
-                    icon: Icon(_viewIcon(view)))
+                  value: view,
+                  label: Text(view[0].toUpperCase() + view.substring(1)),
+                  icon: Icon(_viewIcon(view)),
+                ),
             ],
             selected: {state.projectView},
             onSelectionChanged: (selection) =>
@@ -459,27 +520,37 @@ class _ProjectWorkspace extends ConsumerWidget {
         ),
         const SizedBox(height: 16),
         _ProjectMetrics(
-            project: project,
-            milestones: milestones,
-            progress: state.progressFor(project)),
+          project: project,
+          milestones: milestones,
+          progress: state.progressFor(project),
+          linkedTaskCount: linkedTaskCount,
+        ),
+        const SizedBox(height: 12),
+        _ProjectTaskLinks(project: project),
         const SizedBox(height: 12),
         _ConnectedSystems(project: project),
         const SizedBox(height: 16),
         _ProjectViewBody(
-            state: state, project: project, milestones: milestones),
+          state: state,
+          project: project,
+          milestones: milestones,
+        ),
       ],
     );
   }
 }
 
 class _ProjectMetrics extends StatelessWidget {
-  const _ProjectMetrics(
-      {required this.project,
-      required this.milestones,
-      required this.progress});
+  const _ProjectMetrics({
+    required this.project,
+    required this.milestones,
+    required this.progress,
+    required this.linkedTaskCount,
+  });
   final ProjectModel project;
   final List<MilestoneModel> milestones;
   final double progress;
+  final int linkedTaskCount;
 
   @override
   Widget build(BuildContext context) {
@@ -488,31 +559,38 @@ class _ProjectMetrics extends StatelessWidget {
       runSpacing: 12,
       children: [
         _Metric(
-            label: 'Progress',
-            value: '${progress.toStringAsFixed(0)}%',
-            color: project.accentColor),
+          label: 'Progress',
+          value: '${progress.toStringAsFixed(0)}%',
+          color: project.accentColor,
+        ),
         _Metric(
-            label: 'Milestones',
-            value: '${milestones.length}',
-            color: const Color(0xFFB45309)),
+          label: 'Milestones',
+          value: '${milestones.length}',
+          color: const Color(0xFFB45309),
+        ),
         _Metric(
-            label: 'Linked tasks',
-            value: '${project.linkedTaskIds.length}',
-            color: const Color(0xFF0369A1)),
+          label: 'Linked tasks',
+          value: '$linkedTaskCount',
+          color: const Color(0xFF0369A1),
+        ),
         _Metric(
-            label: 'Deadline',
-            value: project.deadline == null
-                ? 'Not set'
-                : _shortDate(project.deadline!),
-            color: const Color(0xFFBE123C)),
+          label: 'Deadline',
+          value: project.deadline == null
+              ? 'Not set'
+              : _shortDate(project.deadline!),
+          color: const Color(0xFFBE123C),
+        ),
       ],
     );
   }
 }
 
 class _Metric extends StatelessWidget {
-  const _Metric(
-      {required this.label, required this.value, required this.color});
+  const _Metric({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
   final String label;
   final String value;
   final Color color;
@@ -525,16 +603,18 @@ class _Metric extends StatelessWidget {
         elevation: 0,
         child: Padding(
           padding: const EdgeInsets.all(12),
-          child:
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(label, style: Theme.of(context).textTheme.labelMedium),
-            const SizedBox(height: 6),
-            Text(value,
-                style: Theme.of(context)
-                    .textTheme
-                    .titleLarge
-                    ?.copyWith(fontWeight: FontWeight.w800, color: color))
-          ]),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label, style: Theme.of(context).textTheme.labelMedium),
+              const SizedBox(height: 6),
+              Text(
+                value,
+                style: Theme.of(context).textTheme.titleLarge
+                    ?.copyWith(fontWeight: FontWeight.w800, color: color),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -542,8 +622,11 @@ class _Metric extends StatelessWidget {
 }
 
 class _ProjectViewBody extends ConsumerWidget {
-  const _ProjectViewBody(
-      {required this.state, required this.project, required this.milestones});
+  const _ProjectViewBody({
+    required this.state,
+    required this.project,
+    required this.milestones,
+  });
   final OrganizationState state;
   final ProjectModel project;
   final List<MilestoneModel> milestones;
@@ -565,14 +648,20 @@ class _ProjectViewBody extends ConsumerWidget {
         return _GalleryView(projects: state.workspaceProjects);
       default:
         return _ProjectDashboardView(
-            state: state, project: project, milestones: milestones);
+          state: state,
+          project: project,
+          milestones: milestones,
+        );
     }
   }
 }
 
 class _ProjectDashboardView extends ConsumerWidget {
-  const _ProjectDashboardView(
-      {required this.state, required this.project, required this.milestones});
+  const _ProjectDashboardView({
+    required this.state,
+    required this.project,
+    required this.milestones,
+  });
   final OrganizationState state;
   final ProjectModel project;
   final List<MilestoneModel> milestones;
@@ -586,7 +675,8 @@ class _ProjectDashboardView extends ConsumerWidget {
         .where((goal) => !project.linkedGoalIds.contains(goal.id))
         .toList();
     final controller = ref.read(organizationControllerProvider.notifier);
-    final risk = project.deadline != null &&
+    final risk =
+        project.deadline != null &&
         project.progress < 60 &&
         project.deadline!.difference(DateTime.now()).inDays <= 14;
     final progress = state.progressFor(project);
@@ -604,25 +694,29 @@ class _ProjectDashboardView extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Project pulse',
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleMedium
-                              ?.copyWith(fontWeight: FontWeight.w800)),
+                      Text(
+                        'Project pulse',
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w800),
+                      ),
                       const SizedBox(height: 14),
                       LinearProgressIndicator(
-                          value: (progress / 100).clamp(0, 1),
-                          minHeight: 10,
-                          color: project.accentColor,
-                          backgroundColor:
-                              project.accentColor.withValues(alpha: 0.14)),
+                        value: (progress / 100).clamp(0, 1),
+                        minHeight: 10,
+                        color: project.accentColor,
+                        backgroundColor: project.accentColor.withValues(
+                          alpha: 0.14,
+                        ),
+                      ),
                       const SizedBox(height: 10),
                       Text(
-                          '${progress.toStringAsFixed(0)}% complete · ${risk ? 'Review deadline risk' : 'On track for current data'}'),
+                        '${progress.toStringAsFixed(0)}% complete · ${risk ? 'Review deadline risk' : 'On track for current data'}',
+                      ),
                       const SizedBox(height: 14),
                       Text(
-                          'Local reasoning: progress is derived from milestone completion when milestones exist; otherwise the project’s saved progress is used.',
-                          style: Theme.of(context).textTheme.bodySmall),
+                        'Local reasoning: progress is derived from milestone completion when milestones exist; otherwise the project’s saved progress is used.',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
                     ],
                   ),
                 ),
@@ -639,25 +733,27 @@ class _ProjectDashboardView extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Icon(
-                          risk
-                              ? Icons.warning_amber_rounded
-                              : Icons.check_circle_outline_rounded,
-                          color: risk
-                              ? const Color(0xFFBE123C)
-                              : const Color(0xFF047857)),
+                        risk
+                            ? Icons.warning_amber_rounded
+                            : Icons.check_circle_outline_rounded,
+                        color: risk
+                            ? const Color(0xFFBE123C)
+                            : const Color(0xFF047857),
+                      ),
                       const SizedBox(height: 10),
                       Text(
-                          risk
-                              ? 'Deadline needs attention'
-                              : 'Planning looks steady',
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleMedium
-                              ?.copyWith(fontWeight: FontWeight.w800)),
+                        risk
+                            ? 'Deadline needs attention'
+                            : 'Planning looks steady',
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w800),
+                      ),
                       const SizedBox(height: 8),
-                      Text(risk
-                          ? 'Protect the next focus block and review the critical path.'
-                          : 'Keep the next action connected to a milestone and goal.'),
+                      Text(
+                        risk
+                            ? 'Protect the next focus block and review the critical path.'
+                            : 'Keep the next action connected to a milestone and goal.',
+                      ),
                     ],
                   ),
                 ),
@@ -666,76 +762,92 @@ class _ProjectDashboardView extends ConsumerWidget {
           ],
         ),
         const SizedBox(height: 16),
-        Text('Milestones',
-            style: Theme.of(context)
-                .textTheme
-                .titleMedium
-                ?.copyWith(fontWeight: FontWeight.w800)),
+        Text(
+          'Milestones',
+          style: Theme.of(context).textTheme.titleMedium
+              ?.copyWith(fontWeight: FontWeight.w800),
+        ),
         const SizedBox(height: 8),
         if (milestones.isEmpty)
           Card(
             elevation: 0,
             child: Padding(
               padding: const EdgeInsets.all(16),
-              child: Row(children: [
-                const Icon(Icons.flag_outlined),
-                const SizedBox(width: 10),
-                const Expanded(
+              child: Row(
+                children: [
+                  const Icon(Icons.flag_outlined),
+                  const SizedBox(width: 10),
+                  const Expanded(
                     child: Text(
-                        'No milestones yet. Add the next meaningful checkpoint to make progress measurable.')),
-                OutlinedButton(
+                      'No milestones yet. Add the next meaningful checkpoint to make progress measurable.',
+                    ),
+                  ),
+                  OutlinedButton(
                     onPressed: () => _newMilestone(context, ref),
-                    child: const Text('Add'))
-              ]),
+                    child: const Text('Add'),
+                  ),
+                ],
+              ),
             ),
           )
         else
-          ...milestones.map((milestone) => _MilestoneTile(
+          ...milestones.map(
+            (milestone) => _MilestoneTile(
               milestone: milestone,
               projectColor: project.accentColor,
               onChanged: (value) => ref
                   .read(organizationControllerProvider.notifier)
-                  .updateMilestone(value))),
+                  .updateMilestone(value),
+            ),
+          ),
         const SizedBox(height: 16),
         Row(
           children: [
             Expanded(
-              child: Text('Connected goals',
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleMedium
-                      ?.copyWith(fontWeight: FontWeight.w800)),
+              child: Text(
+                'Connected goals',
+                style: Theme.of(context).textTheme.titleMedium
+                    ?.copyWith(fontWeight: FontWeight.w800),
+              ),
             ),
             if (availableGoals.isNotEmpty)
               OutlinedButton.icon(
-                  onPressed: () =>
-                      _chooseGoal(context, controller, project, availableGoals),
-                  icon: const Icon(Icons.link_rounded),
-                  label: const Text('Link goal'))
+                onPressed: () =>
+                    _chooseGoal(context, controller, project, availableGoals),
+                icon: const Icon(Icons.link_rounded),
+                label: const Text('Link goal'),
+              ),
           ],
         ),
         const SizedBox(height: 8),
         if (goals.isEmpty)
           const Card(
-              elevation: 0,
-              child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Text(
-                      'No goals linked yet. Link the project to a goal to make progress meaningful across the system.')))
+            elevation: 0,
+            child: Padding(
+              padding: EdgeInsets.all(16),
+              child: Text(
+                'No goals linked yet. Link the project to a goal to make progress meaningful across the system.',
+              ),
+            ),
+          )
         else
-          ...goals.map((goal) => _GoalLinkTile(
+          ...goals.map(
+            (goal) => _GoalLinkTile(
               goal: goal,
-              onUnlink: () => controller.unlinkGoalFromProject(goal.id))),
+              onUnlink: () => controller.unlinkGoalFromProject(goal.id),
+            ),
+          ),
       ],
     );
   }
 }
 
 class _MilestoneTile extends StatelessWidget {
-  const _MilestoneTile(
-      {required this.milestone,
-      required this.projectColor,
-      required this.onChanged});
+  const _MilestoneTile({
+    required this.milestone,
+    required this.projectColor,
+    required this.onChanged,
+  });
   final MilestoneModel milestone;
   final Color projectColor;
   final ValueChanged<MilestoneModel> onChanged;
@@ -750,43 +862,53 @@ class _MilestoneTile extends StatelessWidget {
               ? const Color(0xFF047857)
               : projectColor.withValues(alpha: 0.12),
           child: Icon(
-              milestone.completed ? Icons.check_rounded : Icons.flag_outlined,
-              color: milestone.completed ? Colors.white : projectColor,
-              size: 18),
+            milestone.completed ? Icons.check_rounded : Icons.flag_outlined,
+            color: milestone.completed ? Colors.white : projectColor,
+            size: 18,
+          ),
         ),
-        title: Text(milestone.name,
-            style: TextStyle(
-                decoration:
-                    milestone.completed ? TextDecoration.lineThrough : null)),
-        subtitle:
-            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const SizedBox(height: 6),
-          LinearProgressIndicator(
+        title: Text(
+          milestone.name,
+          style: TextStyle(
+            decoration: milestone.completed ? TextDecoration.lineThrough : null,
+          ),
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 6),
+            LinearProgressIndicator(
               value: (milestone.progress / 100).clamp(0, 1),
               color: projectColor,
-              backgroundColor: projectColor.withValues(alpha: 0.14)),
-          const SizedBox(height: 4),
-          Text(
-              '${milestone.progress.toStringAsFixed(0)}%${milestone.deadline == null ? '' : ' · due ${_shortDate(milestone.deadline!)}'}')
-        ]),
+              backgroundColor: projectColor.withValues(alpha: 0.14),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              '${milestone.progress.toStringAsFixed(0)}%${milestone.deadline == null ? '' : ' · due ${_shortDate(milestone.deadline!)}'}',
+            ),
+          ],
+        ),
         trailing: PopupMenuButton<double>(
-            onSelected: (value) => onChanged(
-                milestone.copyWith(progress: value, completed: value >= 100)),
-            itemBuilder: (context) => const [
-                  PopupMenuItem(value: 0, child: Text('0%')),
-                  PopupMenuItem(value: 50, child: Text('50%')),
-                  PopupMenuItem(value: 100, child: Text('Complete'))
-                ]),
+          onSelected: (value) => onChanged(
+            milestone.copyWith(progress: value, completed: value >= 100),
+          ),
+          itemBuilder: (context) => const [
+            PopupMenuItem(value: 0, child: Text('0%')),
+            PopupMenuItem(value: 50, child: Text('50%')),
+            PopupMenuItem(value: 100, child: Text('Complete')),
+          ],
+        ),
       ),
     );
   }
 }
 
 Future<void> _chooseGoal(
-    BuildContext context,
-    OrganizationController controller,
-    ProjectModel project,
-    List<GoalModel> goals) async {
+  BuildContext context,
+  OrganizationController controller,
+  ProjectModel project,
+  List<GoalModel> goals,
+) async {
   final goalId = await showDialog<String>(
     context: context,
     builder: (dialogContext) => AlertDialog(
@@ -802,17 +924,19 @@ Future<void> _chooseGoal(
                     ListTile(
                       leading: const Icon(Icons.flag_outlined),
                       title: Text(goal.title),
-                      subtitle:
-                          Text('${goal.progress.toStringAsFixed(0)}% complete'),
+                      subtitle: Text(
+                        '${goal.progress.toStringAsFixed(0)}% complete',
+                      ),
                       onTap: () => Navigator.pop(dialogContext, goal.id),
-                    )
+                    ),
                 ],
               ),
       ),
       actions: [
         TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'))
+          onPressed: () => Navigator.pop(dialogContext),
+          child: const Text('Cancel'),
+        ),
       ],
     ),
   );
@@ -834,21 +958,25 @@ class _GoalLinkTile extends StatelessWidget {
         leading: const Icon(Icons.flag_outlined, color: Color(0xFFB45309)),
         title: Text(goal.title),
         subtitle: Text(
-            '${goal.goalType} · ${goal.progress.toStringAsFixed(0)}% complete'),
+          '${goal.goalType} · ${goal.progress.toStringAsFixed(0)}% complete',
+        ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             SizedBox(
-                width: 90,
-                child: LinearProgressIndicator(
-                    value: (goal.progress / 100).clamp(0, 1),
-                    color: const Color(0xFFB45309),
-                    backgroundColor: const Color(0xFFFFEDD5))),
+              width: 90,
+              child: LinearProgressIndicator(
+                value: (goal.progress / 100).clamp(0, 1),
+                color: const Color(0xFFB45309),
+                backgroundColor: const Color(0xFFFFEDD5),
+              ),
+            ),
             if (onUnlink != null)
               IconButton(
-                  tooltip: 'Unlink goal',
-                  onPressed: onUnlink,
-                  icon: const Icon(Icons.link_off_rounded))
+                tooltip: 'Unlink goal',
+                onPressed: onUnlink,
+                icon: const Icon(Icons.link_off_rounded),
+              ),
           ],
         ),
       ),
@@ -868,18 +996,22 @@ class _ProjectListView extends StatelessWidget {
           Card(
             elevation: 0,
             child: ListTile(
-              leading: Icon(Icons.folder_special_outlined,
-                  color: project.accentColor),
+              leading: Icon(
+                Icons.folder_special_outlined,
+                color: project.accentColor,
+              ),
               title: Text(project.name),
               subtitle: Text(
-                  '${project.status.replaceAll('_', ' ')} · ${project.priority} · ${project.progress.toStringAsFixed(0)}%'),
+                '${project.status.replaceAll('_', ' ')} · ${project.priority} · ${project.progress.toStringAsFixed(0)}%',
+              ),
               trailing: SizedBox(
-                  width: 100,
-                  child: LinearProgressIndicator(
-                      value: (project.progress / 100).clamp(0, 1),
-                      color: project.accentColor,
-                      backgroundColor:
-                          project.accentColor.withValues(alpha: 0.14))),
+                width: 100,
+                child: LinearProgressIndicator(
+                  value: (project.progress / 100).clamp(0, 1),
+                  color: project.accentColor,
+                  backgroundColor: project.accentColor.withValues(alpha: 0.14),
+                ),
+              ),
             ),
           ),
       ],
@@ -911,30 +1043,36 @@ class _KanbanView extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(status.replaceAll('_', ' ').toUpperCase(),
-                            style: Theme.of(context)
-                                .textTheme
-                                .labelMedium
-                                ?.copyWith(fontWeight: FontWeight.w800)),
+                        Text(
+                          status.replaceAll('_', ' ').toUpperCase(),
+                          style: Theme.of(context).textTheme.labelMedium
+                              ?.copyWith(fontWeight: FontWeight.w800),
+                        ),
                         const SizedBox(height: 8),
-                        for (final project
-                            in projects.where((item) => item.status == status))
+                        for (final project in projects.where(
+                          (item) => item.status == status,
+                        ))
                           Card(
                             color: project.accentColor.withValues(alpha: 0.10),
                             elevation: 0,
                             child: Padding(
-                                padding: const EdgeInsets.all(10),
-                                child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(project.name,
-                                          style: const TextStyle(
-                                              fontWeight: FontWeight.w700)),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                          '${project.progress.toStringAsFixed(0)}% complete')
-                                    ])),
+                              padding: const EdgeInsets.all(10),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    project.name,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    '${project.progress.toStringAsFixed(0)}% complete',
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                       ],
                     ),
@@ -955,30 +1093,40 @@ class _TimelineView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-        elevation: 0,
-        child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: milestones.isEmpty
-                ? const Text('Add milestones to see the project timeline.')
-                : Column(children: [
-                    for (final milestone in milestones)
-                      ListTile(
-                          contentPadding: EdgeInsets.zero,
-                          leading: Container(
-                              width: 12,
-                              height: 12,
-                              decoration: BoxDecoration(
-                                  color: milestone.completed
-                                      ? const Color(0xFF047857)
-                                      : const Color(0xFF4F46E5),
-                                  shape: BoxShape.circle)),
-                          title: Text(milestone.name),
-                          subtitle: Text(milestone.deadline == null
-                              ? 'No deadline'
-                              : _shortDate(milestone.deadline!)),
-                          trailing:
-                              Text('${milestone.progress.toStringAsFixed(0)}%'))
-                  ])));
+      elevation: 0,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: milestones.isEmpty
+            ? const Text('Add milestones to see the project timeline.')
+            : Column(
+                children: [
+                  for (final milestone in milestones)
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: Container(
+                        width: 12,
+                        height: 12,
+                        decoration: BoxDecoration(
+                          color: milestone.completed
+                              ? const Color(0xFF047857)
+                              : const Color(0xFF4F46E5),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      title: Text(milestone.name),
+                      subtitle: Text(
+                        milestone.deadline == null
+                            ? 'No deadline'
+                            : _shortDate(milestone.deadline!),
+                      ),
+                      trailing: Text(
+                        '${milestone.progress.toStringAsFixed(0)}%',
+                      ),
+                    ),
+                ],
+              ),
+      ),
+    );
   }
 }
 
@@ -995,32 +1143,38 @@ class _CalendarView extends StatelessWidget {
           (
             label: 'Milestone: ${milestone.name}',
             date: milestone.deadline!,
-            progress: milestone.progress
+            progress: milestone.progress,
           ),
       if (project.deadline != null)
         (
           label: 'Project deadline',
           date: project.deadline!,
-          progress: project.progress
+          progress: project.progress,
         ),
     ]..sort((a, b) => a.date.compareTo(b.date));
     return Card(
-        elevation: 0,
-        child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: entries.isEmpty
-                ? const Text('No project or milestone deadlines are set.')
-                : Column(children: [
-                    for (final entry in entries)
-                      ListTile(
-                          contentPadding: EdgeInsets.zero,
-                          leading: const Icon(Icons.event_outlined,
-                              color: Color(0xFFBE123C)),
-                          title: Text(entry.label),
-                          subtitle: Text(_shortDate(entry.date)),
-                          trailing:
-                              Text('${entry.progress.toStringAsFixed(0)}%'))
-                  ])));
+      elevation: 0,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: entries.isEmpty
+            ? const Text('No project or milestone deadlines are set.')
+            : Column(
+                children: [
+                  for (final entry in entries)
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(
+                        Icons.event_outlined,
+                        color: Color(0xFFBE123C),
+                      ),
+                      title: Text(entry.label),
+                      subtitle: Text(_shortDate(entry.date)),
+                      trailing: Text('${entry.progress.toStringAsFixed(0)}%'),
+                    ),
+                ],
+              ),
+      ),
+    );
   }
 }
 
@@ -1064,46 +1218,59 @@ class _GalleryView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Wrap(spacing: 12, runSpacing: 12, children: [
-      for (final project in projects)
-        SizedBox(
+    return Wrap(
+      spacing: 12,
+      runSpacing: 12,
+      children: [
+        for (final project in projects)
+          SizedBox(
             width: 240,
             child: Card(
-                elevation: 0,
-                child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                              height: 8,
-                              decoration: BoxDecoration(
-                                  color: project.accentColor,
-                                  borderRadius: BorderRadius.circular(4))),
-                          const SizedBox(height: 14),
-                          Text(project.name,
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.w800)),
-                          const SizedBox(height: 8),
-                          Text(
-                              project.description.isEmpty
-                                  ? 'No description'
-                                  : project.description,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis),
-                          const SizedBox(height: 14),
-                          Text(
-                              '${project.progress.toStringAsFixed(0)}% complete')
-                        ]))))
-    ]);
+              elevation: 0,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      height: 8,
+                      decoration: BoxDecoration(
+                        color: project.accentColor,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    Text(
+                      project.name,
+                      style: const TextStyle(fontWeight: FontWeight.w800),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      project.description.isEmpty
+                          ? 'No description'
+                          : project.description,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 14),
+                    Text('${project.progress.toStringAsFixed(0)}% complete'),
+                  ],
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
   }
 }
 
 Future<void> _newWorkspace(BuildContext context, WidgetRef ref) async {
-  final values = await _form(context,
-      title: 'New workspace',
-      nameHint: 'Personal, College, Startup…',
-      descriptionHint: 'What belongs here?');
+  final values = await _form(
+    context,
+    title: 'New workspace',
+    nameHint: 'Personal, College, Startup…',
+    descriptionHint: 'What belongs here?',
+  );
   if (values != null) {
     await ref
         .read(organizationControllerProvider.notifier)
@@ -1112,10 +1279,12 @@ Future<void> _newWorkspace(BuildContext context, WidgetRef ref) async {
 }
 
 Future<void> _newProject(BuildContext context, WidgetRef ref) async {
-  final values = await _form(context,
-      title: 'New project',
-      nameHint: 'Project name',
-      descriptionHint: 'What outcome will this project deliver?');
+  final values = await _form(
+    context,
+    title: 'New project',
+    nameHint: 'Project name',
+    descriptionHint: 'What outcome will this project deliver?',
+  );
   if (values != null) {
     await ref
         .read(organizationControllerProvider.notifier)
@@ -1124,10 +1293,12 @@ Future<void> _newProject(BuildContext context, WidgetRef ref) async {
 }
 
 Future<void> _newGoal(BuildContext context, WidgetRef ref) async {
-  final values = await _form(context,
-      title: 'New goal',
-      nameHint: 'Goal title',
-      descriptionHint: 'What does success look like?');
+  final values = await _form(
+    context,
+    title: 'New goal',
+    nameHint: 'Goal title',
+    descriptionHint: 'What does success look like?',
+  );
   if (values != null) {
     await ref
         .read(organizationControllerProvider.notifier)
@@ -1136,8 +1307,12 @@ Future<void> _newGoal(BuildContext context, WidgetRef ref) async {
 }
 
 Future<void> _newMilestone(BuildContext context, WidgetRef ref) async {
-  final values = await _form(context,
-      title: 'New milestone', nameHint: 'Milestone name', descriptionHint: '');
+  final values = await _form(
+    context,
+    title: 'New milestone',
+    nameHint: 'Milestone name',
+    descriptionHint: '',
+  );
   if (values != null) {
     await ref
         .read(organizationControllerProvider.notifier)
@@ -1145,10 +1320,12 @@ Future<void> _newMilestone(BuildContext context, WidgetRef ref) async {
   }
 }
 
-Future<(String, String)?> _form(BuildContext context,
-    {required String title,
-    required String nameHint,
-    required String descriptionHint}) async {
+Future<(String, String)?> _form(
+  BuildContext context, {
+  required String title,
+  required String nameHint,
+  required String descriptionHint,
+}) async {
   final name = TextEditingController();
   final description = TextEditingController();
   final result = await showDialog<bool>(
@@ -1159,34 +1336,42 @@ Future<(String, String)?> _form(BuildContext context,
         mainAxisSize: MainAxisSize.min,
         children: [
           TextField(
-              controller: name,
-              autofocus: true,
-              decoration: InputDecoration(
-                  labelText: nameHint, border: const OutlineInputBorder())),
+            controller: name,
+            autofocus: true,
+            decoration: InputDecoration(
+              labelText: nameHint,
+              border: const OutlineInputBorder(),
+            ),
+          ),
           if (descriptionHint.isNotEmpty) ...[
             const SizedBox(height: 12),
             TextField(
-                controller: description,
-                maxLines: 3,
-                decoration: InputDecoration(
-                    labelText: descriptionHint,
-                    border: const OutlineInputBorder())),
+              controller: description,
+              maxLines: 3,
+              decoration: InputDecoration(
+                labelText: descriptionHint,
+                border: const OutlineInputBorder(),
+              ),
+            ),
           ],
         ],
       ),
       actions: [
         TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel')),
+          onPressed: () => Navigator.pop(dialogContext),
+          child: const Text('Cancel'),
+        ),
         FilledButton(
-            onPressed: () =>
-                Navigator.pop(dialogContext, name.text.trim().isNotEmpty),
-            child: const Text('Create')),
+          onPressed: () =>
+              Navigator.pop(dialogContext, name.text.trim().isNotEmpty),
+          child: const Text('Create'),
+        ),
       ],
     ),
   );
-  final values =
-      result == true ? (name.text.trim(), description.text.trim()) : null;
+  final values = result == true
+      ? (name.text.trim(), description.text.trim())
+      : null;
   name.dispose();
   description.dispose();
   return values;
@@ -1216,149 +1401,283 @@ IconData _viewIcon(String view) {
 String _shortDate(DateTime value) =>
     '${value.month}/${value.day}/${value.year}';
 
-class _ConnectedSystems extends StatelessWidget {
+class _ProjectTaskLinks extends ConsumerWidget {
+  const _ProjectTaskLinks({required this.project});
+  final ProjectModel project;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final tasks = ref
+        .watch(taskControllerProvider)
+        .maybeWhen(
+          data: (value) => value.visibleTasksFor(project.id),
+          orElse: () => const [],
+        );
+    final projectQuery = Uri.encodeQueryComponent(project.id);
+    return Card(
+      elevation: 0,
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Tasks linked to ${project.name}',
+                    style: Theme.of(context).textTheme.titleSmall
+                        ?.copyWith(fontWeight: FontWeight.w800),
+                  ),
+                ),
+                OutlinedButton.icon(
+                  onPressed: () => context.push('/tasks?project=$projectQuery'),
+                  icon: const Icon(Icons.open_in_new_rounded, size: 18),
+                  label: const Text('Open tasks'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            if (tasks.isEmpty)
+              const Text(
+                'No tasks are linked yet. Create a task from this project view to keep the work connected.',
+              )
+            else
+              ...tasks
+                  .take(6)
+                  .map(
+                    (task) => ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      dense: true,
+                      leading: Icon(
+                        task.isCompleted
+                            ? Icons.check_circle_rounded
+                            : Icons.radio_button_unchecked_rounded,
+                        color: task.isCompleted
+                            ? const Color(0xFF19715F)
+                            : Theme.of(context).colorScheme.primary,
+                      ),
+                      title: Text(
+                        task.title,
+                        style: TextStyle(
+                          decoration: task.isCompleted
+                              ? TextDecoration.lineThrough
+                              : null,
+                        ),
+                      ),
+                      subtitle: Text(
+                        '${task.priority} · ${task.status.replaceAll('_', ' ')}',
+                      ),
+                    ),
+                  ),
+            if (tasks.length > 6)
+              Text(
+                '${tasks.length - 6} more linked tasks in Tasks',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ConnectedSystems extends ConsumerWidget {
   const _ConnectedSystems({required this.project});
   final ProjectModel project;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final taskCount = ref
+        .watch(taskControllerProvider)
+        .maybeWhen(
+          data: (value) => value.visibleTasksFor(project.id).length,
+          orElse: () => project.linkedTaskIds.length,
+        );
     final projectQuery = Uri.encodeQueryComponent(project.id);
     final chips = <Widget>[
       ActionChip(
-          avatar: const Icon(Icons.checklist_rounded, size: 18),
-          label: Text('Tasks ${project.linkedTaskIds.length}'),
-          onPressed: () => context.push('/tasks?project=$projectQuery')),
+        avatar: const Icon(Icons.checklist_rounded, size: 18),
+        label: Text('Tasks $taskCount'),
+        onPressed: () => context.push('/tasks?project=$projectQuery'),
+      ),
       ActionChip(
-          avatar: const Icon(Icons.calendar_month_rounded, size: 18),
-          label: Text('Calendar ${project.linkedEventIds.length}'),
-          onPressed: () => context.push('/calendar?project=$projectQuery')),
+        avatar: const Icon(Icons.calendar_month_rounded, size: 18),
+        label: Text('Calendar ${project.linkedEventIds.length}'),
+        onPressed: () => context.push('/calendar?project=$projectQuery'),
+      ),
       ActionChip(
-          avatar: const Icon(Icons.menu_book_rounded, size: 18),
-          label: Text('Notes ${project.linkedNoteIds.length}'),
-          onPressed: () => context.push('/notes?project=$projectQuery')),
+        avatar: const Icon(Icons.menu_book_rounded, size: 18),
+        label: Text('Notes ${project.linkedNoteIds.length}'),
+        onPressed: () => context.push('/notes?project=$projectQuery'),
+      ),
       ActionChip(
-          avatar: const Icon(Icons.attach_file_rounded, size: 18),
-          label: Text('Assets ${project.linkedAssetIds.length}'),
-          onPressed: () => context.push('/assets?project=$projectQuery')),
+        avatar: const Icon(Icons.attach_file_rounded, size: 18),
+        label: Text('Assets ${project.linkedAssetIds.length}'),
+        onPressed: () => context.push('/assets?project=$projectQuery'),
+      ),
       ActionChip(
-          avatar: const Icon(Icons.notifications_none_rounded, size: 18),
-          label: Text('Reminders ${project.linkedReminderIds.length}'),
-          onPressed: () => context.push('/reminders?project=$projectQuery')),
+        avatar: const Icon(Icons.notifications_none_rounded, size: 18),
+        label: Text('Reminders ${project.linkedReminderIds.length}'),
+        onPressed: () => context.push('/reminders?project=$projectQuery'),
+      ),
       ActionChip(
-          avatar: const Icon(Icons.insights_rounded, size: 18),
-          label: const Text('Analytics'),
-          onPressed: () => context.push('/analytics?project=$projectQuery')),
+        avatar: const Icon(Icons.insights_rounded, size: 18),
+        label: const Text('Analytics'),
+        onPressed: () => context.push('/analytics?project=$projectQuery'),
+      ),
       ActionChip(
-          avatar: const Icon(Icons.auto_awesome_rounded, size: 18),
-          label: const Text('Project AI'),
-          onPressed: () => context.push('/assistant?project=$projectQuery')),
+        avatar: const Icon(Icons.auto_awesome_rounded, size: 18),
+        label: const Text('Project AI'),
+        onPressed: () => context.push('/assistant?project=$projectQuery'),
+      ),
       ActionChip(
-          avatar: const Icon(Icons.hub_outlined, size: 18),
-          label: const Text('Knowledge Graph'),
-          onPressed: () => context.push(
-              '/knowledge-graph?workspace=${Uri.encodeQueryComponent(project.workspaceId)}')),
+        avatar: const Icon(Icons.hub_outlined, size: 18),
+        label: const Text('Knowledge Graph'),
+        onPressed: () => context.push(
+          '/knowledge-graph?workspace=${Uri.encodeQueryComponent(project.workspaceId)}',
+        ),
+      ),
     ];
     return Card(
       elevation: 0,
       color: const Color(0xFFF8FAFC),
       child: Padding(
         padding: const EdgeInsets.all(14),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('Connected systems',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleSmall
-                  ?.copyWith(fontWeight: FontWeight.w800)),
-          const SizedBox(height: 4),
-          Text('Keep project context visible across the FocusFlow modules.',
-              style: Theme.of(context).textTheme.bodySmall),
-          const SizedBox(height: 10),
-          Wrap(spacing: 8, runSpacing: 8, children: chips),
-        ]),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Connected systems',
+              style: Theme.of(context).textTheme.titleSmall
+                  ?.copyWith(fontWeight: FontWeight.w800),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Keep project context visible across the FocusFlow modules.',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 10),
+            Wrap(spacing: 8, runSpacing: 8, children: chips),
+          ],
+        ),
       ),
     );
   }
 }
 
 Future<bool> _confirmAction(
-    BuildContext context, String title, String body) async {
+  BuildContext context,
+  String title,
+  String body,
+) async {
   final result = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) =>
-          AlertDialog(title: Text(title), content: Text(body), actions: [
-            TextButton(
-                onPressed: () => Navigator.pop(dialogContext, false),
-                child: const Text('Cancel')),
-            FilledButton(
-                onPressed: () => Navigator.pop(dialogContext, true),
-                child: const Text('Continue'))
-          ]));
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: Text(title),
+      content: Text(body),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(dialogContext, false),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.pop(dialogContext, true),
+          child: const Text('Continue'),
+        ),
+      ],
+    ),
+  );
   return result == true;
 }
 
-Future<void> _showProjectManager(BuildContext context, ProjectModel project,
-    List<MilestoneModel> milestones) async {
+Future<void> _showProjectManager(
+  BuildContext context,
+  ProjectModel project,
+  List<MilestoneModel> milestones,
+) async {
   final incomplete = milestones
       .where((item) => !item.completed)
       .map((item) => item.name)
       .toList();
   await showDialog<void>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-              title: Text('${project.name} plan'),
-              content: SingleChildScrollView(
-                  child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                    Text(
-                        '${project.progress.toStringAsFixed(0)}% complete · ${project.status.replaceAll('_', ' ')}'),
-                    const SizedBox(height: 12),
-                    const Text('Local recommendation',
-                        style: TextStyle(fontWeight: FontWeight.w800)),
-                    const SizedBox(height: 4),
-                    Text(project.deadline == null
-                        ? 'No deadline is set. Add one after choosing the next checkpoint.'
-                        : 'Use the next milestone to protect the project deadline.'),
-                    const SizedBox(height: 12),
-                    const Text('Next actions',
-                        style: TextStyle(fontWeight: FontWeight.w800)),
-                    const SizedBox(height: 4),
-                    for (final name in incomplete.isEmpty
-                        ? [
-                            'Define the next milestone',
-                            'Create one concrete linked task',
-                            'Schedule a review checkpoint'
-                          ]
-                        : incomplete.take(3))
-                      Padding(
-                          padding: const EdgeInsets.only(bottom: 4),
-                          child: Text('• $name'))
-                  ])),
-              actions: [
-                FilledButton(
-                    onPressed: () => Navigator.pop(dialogContext),
-                    child: const Text('Close'))
-              ]));
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: Text('${project.name} plan'),
+      content: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '${project.progress.toStringAsFixed(0)}% complete · ${project.status.replaceAll('_', ' ')}',
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'Local recommendation',
+              style: TextStyle(fontWeight: FontWeight.w800),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              project.deadline == null
+                  ? 'No deadline is set. Add one after choosing the next checkpoint.'
+                  : 'Use the next milestone to protect the project deadline.',
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'Next actions',
+              style: TextStyle(fontWeight: FontWeight.w800),
+            ),
+            const SizedBox(height: 4),
+            for (final name
+                in incomplete.isEmpty
+                    ? [
+                        'Define the next milestone',
+                        'Create one concrete linked task',
+                        'Schedule a review checkpoint',
+                      ]
+                    : incomplete.take(3))
+              Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Text('• $name'),
+              ),
+          ],
+        ),
+      ),
+      actions: [
+        FilledButton(
+          onPressed: () => Navigator.pop(dialogContext),
+          child: const Text('Close'),
+        ),
+      ],
+    ),
+  );
 }
 
 Future<void> _showExportNotice(
-    BuildContext context, ProjectModel project) async {
+  BuildContext context,
+  ProjectModel project,
+) async {
   final payload = jsonEncode(project.toJson());
   await showDialog<void>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-              title: const Text('Project export'),
-              content: const Text(
-                  'The project JSON is ready. Copy it to keep a portable offline snapshot.'),
-              actions: [
-                TextButton(
-                    onPressed: () async {
-                      await Clipboard.setData(ClipboardData(text: payload));
-                      if (dialogContext.mounted) Navigator.pop(dialogContext);
-                    },
-                    child: const Text('Copy JSON')),
-                FilledButton(
-                    onPressed: () => Navigator.pop(dialogContext),
-                    child: const Text('Close'))
-              ]));
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: const Text('Project export'),
+      content: const Text(
+        'The project JSON is ready. Copy it to keep a portable offline snapshot.',
+      ),
+      actions: [
+        TextButton(
+          onPressed: () async {
+            await Clipboard.setData(ClipboardData(text: payload));
+            if (dialogContext.mounted) Navigator.pop(dialogContext);
+          },
+          child: const Text('Copy JSON'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.pop(dialogContext),
+          child: const Text('Close'),
+        ),
+      ],
+    ),
+  );
 }

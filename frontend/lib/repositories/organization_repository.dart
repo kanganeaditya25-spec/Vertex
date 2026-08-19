@@ -27,73 +27,97 @@ class OrganizationRepository {
 
   Future<WorkspaceModel> createWorkspace(WorkspaceModel item) async {
     final next = item;
-    await _upsert(_workspacesKey, await loadWorkspaces(), next,
-        (value) => value.id, (value) => value.toJson());
+    await _upsert(
+      _workspacesKey,
+      await loadWorkspaces(),
+      next,
+      (value) => value.id,
+      (value) => value.toJson(),
+    );
     await _queue('workspace', next.id, 'create', next.toJson());
     return next;
   }
 
   Future<ProjectModel> createProject(ProjectModel item) async {
     final next = item;
-    await _upsert(_projectsKey, await loadProjects(), next, (value) => value.id,
-        (value) => value.toJson());
+    await _upsert(
+      _projectsKey,
+      await loadProjects(),
+      next,
+      (value) => value.id,
+      (value) => value.toJson(),
+    );
     await _queue('project', next.id, 'create', next.toJson());
     return next;
   }
 
   Future<GoalModel> createGoal(GoalModel item) async {
     final next = item;
-    await _upsert(_goalsKey, await loadGoals(), next, (value) => value.id,
-        (value) => value.toJson());
+    await _upsert(
+      _goalsKey,
+      await loadGoals(),
+      next,
+      (value) => value.id,
+      (value) => value.toJson(),
+    );
     await _queue('goal', next.id, 'create', next.toJson());
     return next;
   }
 
   Future<MilestoneModel> createMilestone(MilestoneModel item) async {
     final next = item;
-    await _upsert(_milestonesKey, await loadMilestones(), next,
-        (value) => value.id, (value) => value.toJson());
+    await _upsert(
+      _milestonesKey,
+      await loadMilestones(),
+      next,
+      (value) => value.id,
+      (value) => value.toJson(),
+    );
     await _queue('milestone', next.id, 'create', next.toJson());
     return next;
   }
 
   Future<void> saveWorkspace(WorkspaceModel item) async {
     await _replace(
-        _workspacesKey,
-        (await loadWorkspaces())
-            .map((value) => value.id == item.id ? item : value)
-            .toList(),
-        (value) => value.toJson());
+      _workspacesKey,
+      (await loadWorkspaces())
+          .map((value) => value.id == item.id ? item : value)
+          .toList(),
+      (value) => value.toJson(),
+    );
     await _queue('workspace', item.id, 'update', item.toJson());
   }
 
   Future<void> saveProject(ProjectModel item) async {
     await _replace(
-        _projectsKey,
-        (await loadProjects())
-            .map((value) => value.id == item.id ? item : value)
-            .toList(),
-        (value) => value.toJson());
+      _projectsKey,
+      (await loadProjects())
+          .map((value) => value.id == item.id ? item : value)
+          .toList(),
+      (value) => value.toJson(),
+    );
     await _queue('project', item.id, 'update', item.toJson());
   }
 
   Future<void> saveGoal(GoalModel item) async {
     await _replace(
-        _goalsKey,
-        (await loadGoals())
-            .map((value) => value.id == item.id ? item : value)
-            .toList(),
-        (value) => value.toJson());
+      _goalsKey,
+      (await loadGoals())
+          .map((value) => value.id == item.id ? item : value)
+          .toList(),
+      (value) => value.toJson(),
+    );
     await _queue('goal', item.id, 'update', item.toJson());
   }
 
   Future<void> saveMilestone(MilestoneModel item) async {
     await _replace(
-        _milestonesKey,
-        (await loadMilestones())
-            .map((value) => value.id == item.id ? item : value)
-            .toList(),
-        (value) => value.toJson());
+      _milestonesKey,
+      (await loadMilestones())
+          .map((value) => value.id == item.id ? item : value)
+          .toList(),
+      (value) => value.toJson(),
+    );
     await _queue('milestone', item.id, 'update', item.toJson());
   }
 
@@ -107,45 +131,49 @@ class OrganizationRepository {
 
   Future<void> deleteProject(String id) async {
     await _replace(
-        _projectsKey,
-        (await loadProjects()).where((item) => item.id != id).toList(),
-        (value) => value.toJson());
+      _projectsKey,
+      (await loadProjects()).where((item) => item.id != id).toList(),
+      (value) => value.toJson(),
+    );
     await _queue('project', id, 'delete', {'id': id});
   }
 
   Future<void> deleteWorkspace(String id) async {
     await _replace(
-        _workspacesKey,
-        (await loadWorkspaces()).where((item) => item.id != id).toList(),
-        (value) => value.toJson());
+      _workspacesKey,
+      (await loadWorkspaces()).where((item) => item.id != id).toList(),
+      (value) => value.toJson(),
+    );
     await _queue('workspace', id, 'delete', {'id': id});
   }
 
   Future<ProjectModel> duplicateProject(ProjectModel source) async {
     final now = DateTime.now();
     final copy = ProjectModel(
-        id: 'project-${now.microsecondsSinceEpoch}',
-        workspaceId: source.workspaceId,
-        name: '${source.name} Copy',
-        description: source.description,
-        cover: source.cover,
-        icon: source.icon,
-        color: source.color,
-        status: 'planning',
-        priority: source.priority,
-        startDate: source.startDate,
-        deadline: source.deadline,
-        estimatedMinutes: source.estimatedMinutes,
-        budget: source.budget,
-        tags: source.tags,
-        category: source.category,
-        linkedGoalIds: source.linkedGoalIds,
-        linkedEventIds: source.linkedEventIds,
-        linkedAssetIds: source.linkedAssetIds,
-        linkedReminderIds: source.linkedReminderIds,
-        statusOptions: source.statusOptions,
-        createdAt: now,
-        updatedAt: now);
+      id: 'project-${now.microsecondsSinceEpoch}',
+      workspaceId: source.workspaceId,
+      name: '${source.name} Copy',
+      description: source.description,
+      cover: source.cover,
+      icon: source.icon,
+      color: source.color,
+      status: 'planning',
+      priority: source.priority,
+      startDate: source.startDate,
+      deadline: source.deadline,
+      estimatedMinutes: source.estimatedMinutes,
+      budget: source.budget,
+      tags: source.tags,
+      category: source.category,
+      linkedGoalIds: source.linkedGoalIds,
+      linkedTaskIds: source.linkedTaskIds,
+      linkedEventIds: source.linkedEventIds,
+      linkedAssetIds: source.linkedAssetIds,
+      linkedReminderIds: source.linkedReminderIds,
+      statusOptions: source.statusOptions,
+      createdAt: now,
+      updatedAt: now,
+    );
     return createProject(copy);
   }
 
@@ -161,8 +189,12 @@ class OrganizationRepository {
     }
   }
 
-  Future<void> _queue(String entityType, String entityId, String operation,
-      Map<String, dynamic> payload) async {
+  Future<void> _queue(
+    String entityType,
+    String entityId,
+    String operation,
+    Map<String, dynamic> payload,
+  ) async {
     final queue = await loadQueue();
     queue.add({
       'id': '$entityId:$operation:${DateTime.now().microsecondsSinceEpoch}',
@@ -170,13 +202,15 @@ class OrganizationRepository {
       'entityId': entityId,
       'operation': operation,
       'payload': payload,
-      'createdAt': DateTime.now().toIso8601String()
+      'createdAt': DateTime.now().toIso8601String(),
     });
     await _preferences.setString(_queueKey, jsonEncode(queue));
   }
 
   Future<List<T>> _load<T>(
-      String key, T Function(Map<String, dynamic>) fromJson) async {
+    String key,
+    T Function(Map<String, dynamic>) fromJson,
+  ) async {
     final value = _preferences.getString(key);
     if (value == null || value.isEmpty) return const [];
     try {
@@ -189,13 +223,23 @@ class OrganizationRepository {
     }
   }
 
-  Future<void> _upsert<T>(String key, List<T> values, T next,
-      String Function(T) id, Map<String, dynamic> Function(T) toJson) async {
-    await _replace(
-        key, [...values.where((value) => id(value) != id(next)), next], toJson);
+  Future<void> _upsert<T>(
+    String key,
+    List<T> values,
+    T next,
+    String Function(T) id,
+    Map<String, dynamic> Function(T) toJson,
+  ) async {
+    await _replace(key, [
+      ...values.where((value) => id(value) != id(next)),
+      next,
+    ], toJson);
   }
 
-  Future<void> _replace<T>(String key, List<T> values,
-          Map<String, dynamic> Function(T) toJson) async =>
+  Future<void> _replace<T>(
+    String key,
+    List<T> values,
+    Map<String, dynamic> Function(T) toJson,
+  ) async =>
       _preferences.setString(key, jsonEncode(values.map(toJson).toList()));
 }
