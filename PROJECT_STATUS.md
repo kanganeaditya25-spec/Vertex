@@ -297,3 +297,12 @@ The FocusFlow V2 master prompt is now a named development milestone rather than 
 Phase 1 is complete. Phase 2 has the architecture baseline and Modules 2–14 implemented and deployed; Module 15 remains before Phase 2 can close. Phase 3 is formally active: the research, UX audit, Dashboard Coach, Quick Capture, reduced navigation competition, actionable project cards, tests, and first production deployment are recorded in `docs/PRODUCT_UX_RESEARCH_FOCUSFLOW_V2.md`, `docs/UX_AUDIT_FOCUSFLOW_V2.md`, and `docs/FOCUSFLOW_V2_REDESIGN_ACCEPTANCE.md`. The attached master prompt is now the governing scope for the remaining Phase 3 stabilization and integration gates.
 
 No Module 16 implementation should begin until a Phase 3 exit record confirms that the stabilization work is complete or documents an explicitly accepted exception. This preserves the project principle: **stabilize the system before expanding the system**.
+
+## Frontend Contrast and Authentication Fix
+**Status:** Implemented and deployed in commit [`daf67cd`](https://github.com/kanganeaditya25-spec/Vertex/commit/daf67cdd9eb9922acaea4a77ffaa6675acff6083d).
+
+The screenshot-reported frontend problem was corrected. The Material 3 theme now derives text, display, scaffold, AppBar, and card colors from the active color scheme, removing the forced-black typography that made dark-theme Dashboard text unreadable. The root route now uses an AuthGate and no longer sends users directly into the Dashboard without an entry decision.
+
+Login and Sign up are available at `/login` and `/signup`, and the root route presents the same entry screen when there is no local session. Users can create a local account, log in, or continue offline as a guest. Passwords are stored only as SHA-256 hashes in local SharedPreferences; this is an offline-first local authentication flow, not a server identity system. A visible **Sign out** action was added to the Dashboard More destinations menu.
+
+Validation passed with **36 Flutter tests**, `flutter analyze` reporting **No issues found**, a successful release build, HTTP 200 for `/`, `/login`, `/signup`, `/search`, and `/tasks`, and bundle markers for `Create local account`, `Continue offline as guest`, `Show password`, and `Sign out`. Vercel deployment `dpl_pngcHY9bEu1Q44nKJXaKfoy8pTYT` for `daf67cd` reported **READY**. The complete record is `docs/FRONTEND_CONTRAST_AUTHENTICATION_FIX.md`.

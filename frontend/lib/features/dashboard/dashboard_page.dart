@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../models/dashboard_models.dart';
 import '../../providers/dashboard_providers.dart';
+import '../auth/auth_store.dart';
 import 'focusflow_coach.dart';
 import 'quick_capture_sheet.dart';
 
@@ -106,7 +107,13 @@ class _DashboardView extends ConsumerWidget {
               ),
               PopupMenuButton<String>(
                 tooltip: 'More destinations',
-                onSelected: (route) => context.push(route),
+                onSelected: (route) {
+                  if (route == '__signout') {
+                    ref.read(authStoreProvider.notifier).signOut();
+                  } else {
+                    context.push(route);
+                  }
+                },
                 itemBuilder: (context) => const [
                   PopupMenuItem(value: '/tasks', child: Text('Tasks')),
                   PopupMenuItem(value: '/calendar', child: Text('Calendar')),
@@ -124,6 +131,7 @@ class _DashboardView extends ConsumerWidget {
                   PopupMenuItem(
                       value: '/automation', child: Text('Automation')),
                   PopupMenuItem(value: '/settings', child: Text('Settings')),
+                  PopupMenuItem(value: '__signout', child: Text('Sign out')),
                 ],
                 icon: const Icon(Icons.more_horiz),
               ),
