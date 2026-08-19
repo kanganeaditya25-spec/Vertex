@@ -288,3 +288,12 @@ The Dashboard now opens with a deterministic **Today’s Mission** Coach that se
 Validation passed with **52 FastAPI tests**, **34 Flutter tests**, `flutter analyze` reporting **No issues found**, a successful Flutter web release build, and `git diff --check`. Production smoke checks returned HTTP 200 for `/`, `/tasks`, and `/search`. The deployed Flutter bundle contains `Quick Capture`, `rebalance`, `Command Palette`, and `Focus active`. Vercel deployment `dpl_7wdqa59xWJqBJ9Tb6vUoJj5cv9xz` for commit `f83d0da` reported **READY**. The full acceptance record is `docs/FOCUSFLOW_V2_REDESIGN_ACCEPTANCE.md`.
 
 The redesign does not claim formal WCAG AA certification, measured 60 FPS performance, or behavioral lift without device-level accessibility testing, profiling, and user research. XP, streak pressure, leaderboards, and confetti were intentionally not added because they could optimize engagement rather than meaningful work without evidence and user control.
+
+## Strategic Development Roadmap — Phase 3 Milestone Adopted
+**Status:** Roadmap formalized; Phase 3 Product Stabilization & UX Overhaul is active, with its first production slice complete.
+
+The FocusFlow V2 master prompt is now a named development milestone rather than an ordinary instruction. The strategic sequence is: **Phase 1 — Core Infrastructure; Phase 2 — Modules 1–15; Phase 3 — Product Stabilization & UX Overhaul; Phase 4 — AI Learning & Knowledge Studio (Module 16); Phase 5 — AI Personalization (Module 17); Phase 6 — Plugin & Extension System (Module 18); Phase 7 — Final Production Audit.** The full roadmap, gates, current position, and no-Module-16-before-stabilization rule are recorded in `docs/FOCUSFLOW_DEVELOPMENT_ROADMAP.md`.
+
+Phase 1 is complete. Phase 2 has the architecture baseline and Modules 2–14 implemented and deployed; Module 15 remains before Phase 2 can close. Phase 3 is formally active: the research, UX audit, Dashboard Coach, Quick Capture, reduced navigation competition, actionable project cards, tests, and first production deployment are recorded in `docs/PRODUCT_UX_RESEARCH_FOCUSFLOW_V2.md`, `docs/UX_AUDIT_FOCUSFLOW_V2.md`, and `docs/FOCUSFLOW_V2_REDESIGN_ACCEPTANCE.md`. The attached master prompt is now the governing scope for the remaining Phase 3 stabilization and integration gates.
+
+No Module 16 implementation should begin until a Phase 3 exit record confirms that the stabilization work is complete or documents an explicitly accepted exception. This preserves the project principle: **stabilize the system before expanding the system**.
