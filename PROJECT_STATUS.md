@@ -4,7 +4,7 @@
 **Repository:** [kanganeaditya25-spec/Vertex](https://github.com/kanganeaditya25-spec/Vertex)
 **Public deployment:** [https://vertex-eta-bice.vercel.app/](https://vertex-eta-bice.vercel.app/)
 **Current branch:** `main`
-**Latest deployed commit:** `d2e21b9` — `Record Module 12 reminder notification acceptance`
+**Latest deployed commit:** [`e6a3a3d`](https://github.com/kanganeaditya25-spec/Vertex/commit/e6a3a3d49881fbd75b63efce52c9b1916c920ccd) — `Implement Module 14 Global Search Command Palette and Knowledge Discovery`
 
 ## Executive summary
 
@@ -266,3 +266,14 @@ Module 13 adds the offline-first Knowledge Graph and Relationship Intelligence E
 Validation passed with **47 FastAPI tests**, **27 Flutter tests**, clean Flutter analysis, Python compilation, `git diff --check`, and a successful Flutter web release build. The build emitted only the existing non-blocking wasm dry-run and Material icon advisory; the regular web build completed successfully. The architecture and acceptance records are `docs/CORE_INFRASTRUCTURE_ARCHITECTURE.md`, `docs/CORE_PROMPT_IMPLEMENTATION_AUDIT_NOTES.md`, and `docs/TASK_13_KNOWLEDGE_GRAPH_RELATIONSHIP_INTELLIGENCE.md`. The graph implementation deliberately documents that the prompt’s 1,000,000-node and 5,000,000-relationship figures are capacity targets, not claimed single-process benchmark results.
 
 Final production verification: combined Core Infrastructure and Module 13 commit [`73d84f9`](https://github.com/kanganeaditya25-spec/Vertex/commit/73d84f9) deployed to Vercel as `dpl_CQR9wQ4tXNP6xpRLT8eSSU3V7P3g` with status **READY** and the stable alias `https://vertex-eta-bice.vercel.app`. HTTP smoke checks returned `200` for `/`, `/organization`, `/knowledge-graph`, and `/knowledge-graph?workspace=workspace-1`. The live Flutter bundle contains the Knowledge Explorer, graph insights, suggested connections, and Dashboard/Organization Knowledge Graph navigation.
+
+## Module 14 — Global Search, Command Palette & Knowledge Discovery
+**Status:** Implemented, tested, committed, and deployed in commit [`e6a3a3d`](https://github.com/kanganeaditya25-spec/Vertex/commit/e6a3a3d49881fbd75b63efce52c9b1916c920ccd).
+
+Module 14 adds the workspace-wide `/search` experience across projects, goals, milestones, tasks, calendar events, notes, assets, reminders, workspaces, assistant context, and Knowledge Graph entities. The FastAPI layer provides workspace-aware query and intent contracts, keyword and deterministic semantic-style scoring, fuzzy fallback, filters, history, saved searches, smart collections, study-resource extraction, command catalog execution, discovery, and bounded knowledge paths. The Flutter client adds SharedPreferences-backed offline indexing and persistence, Riverpod search state, keyword/semantic/AI-intent modes, source and recent filters, history, result quick actions, study and discovery panels, and accessible result cards.
+
+The Dashboard now routes its search icon to `/search`; **Ctrl+K** and **Cmd+K** open `/search?palette=1` for the Command Palette. No paid API, cloud embedding service, or telemetry dependency was added. The existing Express shell and `/api/*` behavior remain intact, and the interface preserves flat Material 3 surfaces, restrained solid accents, no gradients, and no decorative effects.
+
+Final validation passed with **52 FastAPI tests**, **31 Flutter tests**, `flutter analyze` reporting **No issues found**, a successful Flutter web release build, and `git diff --check`. The production route `https://vertex-eta-bice.vercel.app/search` returned HTTP 200. The deployed bundle contains `Global Search`, `Command Palette`, and `Knowledge discovery`. Vercel deployment `dpl_9j2zhXF9qaCJg7gPCh6ApbaeE2ZV` for commit `e6a3a3d` reported **READY**. The complete acceptance record is `docs/TASK_14_GLOBAL_SEARCH_COMMAND_PALETTE_KNOWLEDGE_DISCOVERY.md`.
+
+The existing architecture limit remains documented: the Flutter shell is served through Express while the FastAPI `/api/v1` service is independently tested, and durable multi-device search synchronization still depends on the future external database/storage deployment step. Module 14 semantic-style and AI-intent modes are deterministic local contracts designed for future local open-source providers rather than claims of paid cloud inference.
