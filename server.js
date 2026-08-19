@@ -11,7 +11,11 @@ const JWT_SECRET = process.env.JWT_SECRET || 'default-secret-change-me';
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Static files
+// Static files. `/assets` is also a Flutter route, so serve the SPA shell before
+// Express normalizes the public/assets directory into a trailing-slash redirect.
+app.get('/assets', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 

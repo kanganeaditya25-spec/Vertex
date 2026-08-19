@@ -68,6 +68,7 @@ An isolated local Express workflow test then passed for status, sign-up, JWT-pro
 | Express email validation rejected valid addresses | Corrected over-escaped email regex | Local sign-up workflow passed |
 | Document engine could parse HTML fallback as JSON | Added runtime response-shape checks and safe Dio/format/type handling | Flutter analysis and tests passed |
 | Production route verification was too shallow | Added route/API inventory and explicit audit record | All 15 Flutter routes returned HTTP 200 |
+| `/assets` was normalized to a static-directory URL | Added an Express shell route before static middleware | Local route workflow passed; final production deployment is pending |
 
 ## Dependency and platform warnings
 

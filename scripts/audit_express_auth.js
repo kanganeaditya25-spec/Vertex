@@ -6,6 +6,9 @@ const server = app.listen(0, async () => {
   const port = server.address().port;
   const base = `http://127.0.0.1:${port}`;
   try {
+    const assetsRoute = await fetch(`${base}/assets`);
+    assert.equal(assetsRoute.status, 200);
+
     const status = await fetch(`${base}/api/auth/status`);
     assert.equal(status.status, 200);
     const initial = await status.json();
