@@ -2,7 +2,7 @@
 
 **Date:** 19 August 2026
 **Phase:** Phase 3 — Product Stabilization & UX Overhaul
-**Status:** Implemented, validated, and release-built; deployment pending
+**Status:** Implemented, validated, committed, deployed, and smoke-tested
 
 ## Design direction
 
@@ -38,4 +38,4 @@ The redesign applies Hero → primary content → supporting information hierarc
 
 ## Deployment acceptance
 
-The release bundle is ready to commit and push to `main`. The final deployment gate is to wait for Vercel production to report READY and smoke-test the stable URL for HTTP 200 plus the new V2 copy and header-action markers.
+The implementation was rebased onto the latest remote `main` and committed as [`7bfb9f9`](https://github.com/kanganeaditya25-spec/Vertex/commit/7bfb9f933b0758efb7e5fa8646e191b207f9a8d9). Vercel production deployment `dpl_BvAAgr5zAMNb7yVRvXtGZKu7JqZx` reported **READY**. The stable URL `https://vertex-eta-bice.vercel.app/` returned HTTP 200, and the live bundle contained `Your progress today`, `Capture your first idea`, `Create your first workspace`, `Your schedule is safe`, `Your reminders are safe`, `New event`, and `New reminder`.
