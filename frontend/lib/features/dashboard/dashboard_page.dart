@@ -7,6 +7,9 @@ import 'package:go_router/go_router.dart';
 import '../../models/dashboard_models.dart';
 import '../../providers/dashboard_providers.dart';
 import '../auth/auth_store.dart';
+import 'achievement_models.dart';
+import 'achievement_providers.dart';
+import 'focusflow_brand.dart';
 import 'focusflow_coach.dart';
 import 'quick_capture_sheet.dart';
 
@@ -68,6 +71,7 @@ class _DashboardView extends ConsumerWidget {
     final isDesktop = width >= 1000;
     final controller = ref.read(dashboardControllerProvider.notifier);
     final snapshot = state.snapshot;
+    final achievements = ref.watch(achievementProfileProvider);
     final todayTasks = snapshot.tasks;
     final completedTasks = todayTasks.where((task) => task.isCompleted).length;
     final pendingTasks = todayTasks.length - completedTasks;
@@ -93,7 +97,11 @@ class _DashboardView extends ConsumerWidget {
         },
         child: Scaffold(
           appBar: AppBar(
-            title: const Text('FocusFlow AI'),
+            title: const Row(children: [
+              FocusFlowBrand(compact: true),
+              SizedBox(width: 10),
+              Text('FocusFlow AI'),
+            ]),
             actions: [
               IconButton(
                 tooltip: 'Open Global Search',
@@ -159,7 +167,13 @@ class _DashboardView extends ConsumerWidget {
                   userName: snapshot.userName,
                   activeGoal: activeGoals.isEmpty ? null : activeGoals.first,
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 14),
+                achievements.when(
+                  loading: () => const _AchievementLoadingCard(),
+                  error: (_, __) => const SizedBox.shrink(),
+                  data: (profile) => _AchievementCard(profile: profile),
+                ),
+                const SizedBox(height: 16),
                 _MissionCard(
                   recommendation: mission,
                   focusRunning: snapshot.focus.isRunning,
@@ -225,6 +239,121 @@ class _DashboardView extends ConsumerWidget {
 
 class _OpenSearchIntent extends Intent {
   const _OpenSearchIntent();
+}
+
+class _AchievementCard extends StatelessWidget {
+  const _AchievementCard({required this.profile});
+
+  final AchievementProfile profile;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final earnedTitles = trophyDefinitions
+        .where((trophy) => profile.trophies.contains(trophy.id))
+        .map((trophy) => trophy.title)
+        .take(3)
+        .toList();
+    return Card(
+      elevation: 0,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(children: [
+            Icon(Icons.emoji_events_outlined, color: scheme.primary),
+            const SizedBox(width: 8),
+            Expanded(
+                child: Text('Progress you can feel',
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleMedium
+                        ?.copyWith(fontWeight: FontWeight.w800))),
+            Text('Level ${profile.level}',
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    color: scheme.primary, fontWeight: FontWeight.w800)),
+          ]),
+          const SizedBox(height: 14),
+          Wrap(spacing: 18, runSpacing: 12, children: [
+            _RewardMetric(
+                icon: Icons.local_fire_department_outlined,
+                label: 'Streak',
+                value: '${profile.currentStreak}d'),
+            _RewardMetric(
+                icon: Icons.bolt_outlined, label: 'XP', value: '${profile.xp}'),
+            _RewardMetric(
+                icon: Icons.emoji_events_outlined,
+                label: 'Trophies',
+                value:
+                    '${profile.trophies.length}/${trophyDefinitions.length}'),
+            _RewardMetric(
+                icon: Icons.check_circle_outline,
+                label: 'Completed',
+                value: '${profile.totalCompletedTasks}'),
+          ]),
+          const SizedBox(height: 12),
+          ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: LinearProgressIndicator(
+                  value: profile.levelProgress,
+                  minHeight: 8,
+                  backgroundColor: scheme.surfaceContainerHighest,
+                  color: scheme.primary)),
+          const SizedBox(height: 6),
+          Text('${profile.xpToNextLevel} XP to Level ${profile.level + 1}',
+              style: Theme.of(context).textTheme.bodySmall),
+          if (earnedTitles.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Text('Earned: ${earnedTitles.join(' · ')}',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w600)),
+          ]
+        ]),
+      ),
+    );
+  }
+}
+
+class _RewardMetric extends StatelessWidget {
+  const _RewardMetric(
+      {required this.icon, required this.label, required this.value});
+
+  final IconData icon;
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) => Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 18, color: Theme.of(context).colorScheme.primary),
+          const SizedBox(width: 5),
+          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(value, style: const TextStyle(fontWeight: FontWeight.w800)),
+            Text(label, style: Theme.of(context).textTheme.labelSmall),
+          ]),
+        ],
+      );
+}
+
+class _AchievementLoadingCard extends StatelessWidget {
+  const _AchievementLoadingCard();
+
+  @override
+  Widget build(BuildContext context) => const Card(
+        child: Padding(
+            padding: EdgeInsets.all(20),
+            child: Row(children: [
+              SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2)),
+              SizedBox(width: 12),
+              Text('Loading your progress…'),
+            ])),
+      );
 }
 
 class _GreetingHeader extends StatelessWidget {

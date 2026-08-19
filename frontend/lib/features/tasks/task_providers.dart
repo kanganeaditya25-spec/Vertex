@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../repositories/task_repository.dart';
+import '../dashboard/achievement_providers.dart';
 import 'task_models.dart';
 
 final taskControllerProvider = AsyncNotifierProvider<TaskController, TaskState>(
@@ -30,8 +31,7 @@ class TaskState {
   List<TaskModel> visibleTasksFor(String? projectId) {
     final normalized = query.trim().toLowerCase();
     final filtered = tasks.where((task) {
-      final matchesQuery =
-          normalized.isEmpty ||
+      final matchesQuery = normalized.isEmpty ||
           task.title.toLowerCase().contains(normalized) ||
           task.description.toLowerCase().contains(normalized) ||
           task.tags.any((tag) => tag.contains(normalized));
@@ -78,16 +78,16 @@ class TaskState {
     Set<String>? selectedIds,
     bool clearStatus = false,
     bool clearPriority = false,
-  }) => TaskState(
-    tasks: tasks ?? this.tasks,
-    query: query ?? this.query,
-    statusFilter: clearStatus ? null : statusFilter ?? this.statusFilter,
-    priorityFilter: clearPriority
-        ? null
-        : priorityFilter ?? this.priorityFilter,
-    sortBy: sortBy ?? this.sortBy,
-    selectedIds: selectedIds ?? this.selectedIds,
-  );
+  }) =>
+      TaskState(
+        tasks: tasks ?? this.tasks,
+        query: query ?? this.query,
+        statusFilter: clearStatus ? null : statusFilter ?? this.statusFilter,
+        priorityFilter:
+            clearPriority ? null : priorityFilter ?? this.priorityFilter,
+        sortBy: sortBy ?? this.sortBy,
+        selectedIds: selectedIds ?? this.selectedIds,
+      );
 }
 
 class TaskController extends AsyncNotifier<TaskState> {
@@ -105,15 +105,15 @@ class TaskController extends AsyncNotifier<TaskState> {
   Future<void> setQuery(String query) async =>
       _setState((current) => current.copyWith(query: query));
   Future<void> setStatusFilter(String? filter) async => _setState(
-    (current) => filter == null
-        ? current.copyWith(clearStatus: true)
-        : current.copyWith(statusFilter: filter),
-  );
+        (current) => filter == null
+            ? current.copyWith(clearStatus: true)
+            : current.copyWith(statusFilter: filter),
+      );
   Future<void> setPriorityFilter(String? filter) async => _setState(
-    (current) => filter == null
-        ? current.copyWith(clearPriority: true)
-        : current.copyWith(priorityFilter: filter),
-  );
+        (current) => filter == null
+            ? current.copyWith(clearPriority: true)
+            : current.copyWith(priorityFilter: filter),
+      );
   Future<void> setSort(String sort) async =>
       _setState((current) => current.copyWith(sortBy: sort));
 
@@ -165,22 +165,30 @@ class TaskController extends AsyncNotifier<TaskState> {
   }
 
   Future<void> toggleComplete(TaskModel task) async {
-    final status = task.isCompleted ? 'inbox' : 'completed';
+    final completing = !task.isCompleted;
+    final completionTime = completing ? DateTime.now() : null;
+    final status = completing ? 'completed' : 'inbox';
     await updateTask(
       task.copyWith(
         status: status,
-        completionPercent: status == 'completed' ? 100 : 0,
-        completedAt: status == 'completed' ? DateTime.now() : null,
-        clearCompletedAt: status != 'completed',
+        completionPercent: completing ? 100 : 0,
+        completedAt: completionTime,
+        clearCompletedAt: !completing,
       ),
     );
+    if (completing) {
+      await ref
+          .read(achievementProfileProvider.notifier)
+          .recordCompletion(taskId: task.id, completedAt: completionTime);
+    }
   }
 
   Future<void> archive(TaskModel task) async =>
       updateTask(task.copyWith(status: 'archived', archivedAt: DateTime.now()));
   Future<void> restore(TaskModel task) async => updateTask(
-    task.copyWith(status: 'inbox', clearArchivedAt: true, clearDeletedAt: true),
-  );
+        task.copyWith(
+            status: 'inbox', clearArchivedAt: true, clearDeletedAt: true),
+      );
 
   Future<void> deleteTask(TaskModel task) async {
     final current = state.valueOrNull;

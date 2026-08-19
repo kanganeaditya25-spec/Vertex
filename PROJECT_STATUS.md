@@ -327,3 +327,13 @@ The application presentation was changed from the persisted dark experience to a
 ## Calendar Date-Grid Upgrade — 2026-08-19
 
 The Calendar now opens in a visible weekly date-grid with Monday-to-Sunday headers, day numbers, previous/next week controls, Today, selected-date highlighting, configurable work-hour rows, and event chips placed in the correct day/time column. The view switcher offers Week, Day, Month, and Agenda. Existing project-scoped Calendar URLs continue to filter events by stable `projectId`, and saved agenda preferences migrate to the new week default. Flutter analysis reported no issues, 41 Flutter tests passed, the FastAPI suite reported 52 passed, and the release build completed successfully. Detailed record: `docs/CALENDAR_DATE_GRID_UPGRADE_2026-08-19.md`.
+
+
+## FocusFlow Achievement and Reward System — 2026-08-19
+**Status:** Implemented, validated, and release-built; deployment commit pending.
+
+The Dashboard now includes a restrained FocusFlow brand mark and a behavior-focused progress card showing completion streak, XP, level progress, trophies, and total completed tasks. The system awards 25 XP only for unique task completions, protects against duplicate completion events, normalizes dates for reliable consecutive-day streaks, tracks best streak and active completion days, and unlocks five transparent trophies. All state is persisted locally through SharedPreferences, preserving the offline-first and privacy-first architecture. Reopening a task does not award XP.
+
+Task completion is connected through the existing Riverpod task controller to the achievement repository. The UI uses light Material 3 surfaces, solid teal/indigo accents, responsive wrapping metrics, and no gradients, decorative effects, leaderboards, telemetry, or paid APIs. The full acceptance record is `docs/ACHIEVEMENT_REWARD_SYSTEM_2026-08-19.md`.
+
+Validation passed with **44 Flutter tests**, **52 FastAPI tests**, `flutter analyze` reporting **No issues found**, Dart formatting, and a successful production Flutter web release build. The release output was synchronized into `public/`. The remaining gate is the GitHub push and Vercel production smoke check for the achievement strings and HTTP 200 root route. Module 16 remains paused until the Phase 3 exit record is confirmed.
