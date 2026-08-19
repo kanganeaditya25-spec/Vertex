@@ -2,7 +2,7 @@
 
 **Date:** 19 August 2026
 **Phase:** Phase 3 — Product Stabilization & UX Overhaul
-**Status:** Implemented, validated, and release-built; deployment pending
+**Status:** Implemented, validated, committed, deployed, and smoke-tested
 
 ## Problem addressed
 
@@ -32,8 +32,8 @@ New tasks and calendar events were being created with current-day defaults and t
 | Header-action static check | Passed; no floating action controls remain on Tasks, Calendar, Notes, or Reminders |
 | Flutter web release build | Passed with existing non-blocking wasm/icon advisories |
 
-## Deployment gate
+## Deployment acceptance
 
-The release bundle has been synchronized to `public/`. The next step is to commit and push the implementation, wait for the Vercel production deployment to report READY, and smoke-test the stable URL for HTTP 200 and the new scheduling/header strings.
+The implementation was committed and pushed in [`245dbd1`](https://github.com/kanganeaditya25-spec/Vertex/commit/245dbd174db8280ecfa463b691018f622e8f842d). Vercel production deployment `dpl_6FJvP8y92LgXYkk6CcN74Dd3nApx` reported **READY**. The stable URL `https://vertex-eta-bice.vercel.app/` returned HTTP 200, and the live Flutter bundle contained `Schedule for a date`, `New event`, `New reminder`, `New note`, and `New task`.
 
 Module 16 remains paused until Phase 3 stabilization exit is explicitly recorded.
