@@ -121,7 +121,13 @@ class _NoteList extends ConsumerWidget {
           const SizedBox(height: 8),
           Expanded(
               child: visibleNotes.isEmpty
-                  ? const Center(child: Text('No notes match this view.'))
+                  ? _EmptyNotesList(
+                      hasQuery: state.query.isNotEmpty ||
+                          state.favoriteOnly ||
+                          state.noteTypeFilter != null,
+                      onCreate: () =>
+                          controller.createNote(projectId: projectId),
+                    )
                   : ListView.builder(
                       itemCount: visibleNotes.length,
                       itemBuilder: (context, index) {
@@ -131,6 +137,54 @@ class _NoteList extends ConsumerWidget {
                       })),
         ]));
   }
+}
+
+class _EmptyNotesList extends StatelessWidget {
+  const _EmptyNotesList({required this.hasQuery, required this.onCreate});
+
+  final bool hasQuery;
+  final VoidCallback onCreate;
+
+  @override
+  Widget build(BuildContext context) => Center(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                  hasQuery ? Icons.search_off_rounded : Icons.lightbulb_outline,
+                  size: 44),
+              const SizedBox(height: 12),
+              Text(
+                hasQuery
+                    ? 'Nothing matches this view'
+                    : 'Capture your first idea',
+                textAlign: TextAlign.center,
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                hasQuery
+                    ? 'Try another search or clear the filters.'
+                    : 'Write it down now and let FocusFlow keep it organized.',
+                textAlign: TextAlign.center,
+              ),
+              if (!hasQuery) ...[
+                const SizedBox(height: 16),
+                FilledButton.icon(
+                  onPressed: onCreate,
+                  icon: const Icon(Icons.edit_note_rounded),
+                  label: const Text('Capture thought'),
+                ),
+              ],
+            ],
+          ),
+        ),
+      );
 }
 
 class _NoteListTile extends ConsumerWidget {

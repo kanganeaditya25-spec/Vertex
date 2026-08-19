@@ -42,13 +42,45 @@ class _RemindersPageState extends ConsumerState<RemindersPage> {
               onPressed: () => _showPreferences(context),
               icon: const Icon(Icons.tune_rounded),
               tooltip: 'Reminder preferences'),
+          IconButton(
+              onPressed: () =>
+                  _showCreateDialog(context, projectId: widget.projectId),
+              icon: const Icon(Icons.add_alarm_rounded),
+              tooltip: 'New reminder'),
           const SizedBox(width: 8),
         ],
       ),
       body: state.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) =>
-            Center(child: Text('Unable to load reminders: $error')),
+        error: (error, _) => Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.notifications_off_outlined, size: 48),
+                const SizedBox(height: 12),
+                const Text('Your reminders are safe',
+                    style: TextStyle(fontWeight: FontWeight.w700)),
+                const SizedBox(height: 6),
+                const Text(
+                  'We couldn’t load reminders right now. Try again when you’re ready.',
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text('$error',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodySmall),
+                const SizedBox(height: 16),
+                FilledButton.icon(
+                  onPressed: () => ref.invalidate(reminderControllerProvider),
+                  icon: const Icon(Icons.refresh_rounded),
+                  label: const Text('Try again'),
+                ),
+              ],
+            ),
+          ),
+        ),
         data: _buildContent,
       ),
     );
@@ -285,8 +317,20 @@ class _RemindersPageState extends ConsumerState<RemindersPage> {
               style: const TextStyle(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 4),
-            const Text(
-                'Create a reminder or change the filter to see scheduled work here.'),
+            Text(
+                filter == 'overdue'
+                    ? 'You are clear for now. Keep the momentum going.'
+                    : 'Create one follow-up or choose another filter to see what needs attention.',
+                textAlign: TextAlign.center),
+            if (filter != 'overdue') ...[
+              const SizedBox(height: 14),
+              FilledButton.icon(
+                onPressed: () =>
+                    _showCreateDialog(context, projectId: widget.projectId),
+                icon: const Icon(Icons.add_alarm_rounded),
+                label: const Text('Create reminder'),
+              ),
+            ],
           ],
         ),
       ),

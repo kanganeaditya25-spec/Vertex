@@ -35,8 +35,32 @@ class OrganizationPage extends ConsumerWidget {
       ),
       body: state.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) =>
-            Center(child: Text('Organization could not load: $error')),
+        error: (error, _) => Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.cloud_off_outlined, size: 48),
+                const SizedBox(height: 12),
+                const Text('Your work is safe',
+                    style: TextStyle(fontWeight: FontWeight.w700)),
+                const SizedBox(height: 6),
+                const Text(
+                  'We couldn’t load your workspace. Try again when you’re ready.',
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                FilledButton.icon(
+                  onPressed: () =>
+                      ref.invalidate(organizationControllerProvider),
+                  icon: const Icon(Icons.refresh_rounded),
+                  label: const Text('Try again'),
+                ),
+              ],
+            ),
+          ),
+        ),
         data: (value) => _OrganizationShell(state: value),
       ),
     );
@@ -86,7 +110,9 @@ class _OrganizationSidebar extends ConsumerWidget {
             children: [
               Text(
                 'System map',
-                style: Theme.of(context).textTheme.titleMedium
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
                     ?.copyWith(fontWeight: FontWeight.w800),
               ),
               const Spacer(),
@@ -100,7 +126,9 @@ class _OrganizationSidebar extends ConsumerWidget {
           const SizedBox(height: 8),
           Text(
             'WORKSPACES',
-            style: Theme.of(context).textTheme.labelSmall
+            style: Theme.of(context)
+                .textTheme
+                .labelSmall
                 ?.copyWith(letterSpacing: 1.2, fontWeight: FontWeight.w700),
           ),
           Expanded(
@@ -134,9 +162,9 @@ class _OrganizationSidebar extends ConsumerWidget {
                     Text(
                       'PROJECTS',
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        letterSpacing: 1.2,
-                        fontWeight: FontWeight.w700,
-                      ),
+                            letterSpacing: 1.2,
+                            fontWeight: FontWeight.w700,
+                          ),
                     ),
                     const Spacer(),
                     IconButton(
@@ -170,9 +198,9 @@ class _OrganizationSidebar extends ConsumerWidget {
                     Text(
                       'GOALS',
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        letterSpacing: 1.2,
-                        fontWeight: FontWeight.w700,
-                      ),
+                            letterSpacing: 1.2,
+                            fontWeight: FontWeight.w700,
+                          ),
                     ),
                     const Spacer(),
                     IconButton(
@@ -216,7 +244,40 @@ class _OrganizationContent extends ConsumerWidget {
     final workspace = state.selectedWorkspace;
     final project = state.selectedProject;
     if (workspace == null) {
-      return const Center(child: Text('Create a workspace to begin.'));
+      return Center(
+        child: Card(
+          margin: const EdgeInsets.all(24),
+          child: Padding(
+            padding: const EdgeInsets.all(28),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.workspaces_outlined,
+                    size: 52, color: Theme.of(context).colorScheme.primary),
+                const SizedBox(height: 12),
+                Text(
+                  'Create your first workspace',
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleLarge
+                      ?.copyWith(fontWeight: FontWeight.w800),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'A workspace gives your projects, goals, tasks, and notes one calm place to move forward.',
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                FilledButton.icon(
+                  onPressed: () => _newWorkspace(context, ref),
+                  icon: const Icon(Icons.add_rounded),
+                  label: const Text('Create workspace'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
     }
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
@@ -236,7 +297,9 @@ class _OrganizationContent extends ConsumerWidget {
                 children: [
                   Text(
                     workspace.name,
-                    style: Theme.of(context).textTheme.headlineSmall
+                    style: Theme.of(context)
+                        .textTheme
+                        .headlineSmall
                         ?.copyWith(fontWeight: FontWeight.w800),
                   ),
                   Text(
@@ -274,13 +337,12 @@ class _WorkspaceSummary extends StatelessWidget {
   Widget build(BuildContext context) {
     final projects = state.workspaceProjects;
     final goals = state.workspaceGoals;
-    final active = projects
-        .where((project) => project.status == 'active')
-        .length;
+    final active =
+        projects.where((project) => project.status == 'active').length;
     final progress = projects.isEmpty
         ? 0.0
         : projects.map((project) => project.progress).reduce((a, b) => a + b) /
-              projects.length;
+            projects.length;
     return Wrap(
       spacing: 12,
       runSpacing: 12,
@@ -342,7 +404,9 @@ class _SummaryCard extends StatelessWidget {
               const SizedBox(height: 12),
               Text(
                 value,
-                style: Theme.of(context).textTheme.headlineSmall
+                style: Theme.of(context)
+                    .textTheme
+                    .headlineSmall
                     ?.copyWith(fontWeight: FontWeight.w800, color: color),
               ),
               Text(label, style: Theme.of(context).textTheme.bodySmall),
@@ -370,7 +434,9 @@ class _WorkspaceEmpty extends ConsumerWidget {
             const SizedBox(height: 12),
             Text(
               'Build your system map',
-              style: Theme.of(context).textTheme.titleLarge
+              style: Theme.of(context)
+                  .textTheme
+                  .titleLarge
                   ?.copyWith(fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 8),
@@ -400,9 +466,7 @@ class _ProjectWorkspace extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final controller = ref.read(organizationControllerProvider.notifier);
     final milestones = state.milestonesFor(project.id);
-    final linkedTaskCount = ref
-        .watch(taskControllerProvider)
-        .maybeWhen(
+    final linkedTaskCount = ref.watch(taskControllerProvider).maybeWhen(
           data: (taskState) => taskState.visibleTasksFor(project.id).length,
           orElse: () => project.linkedTaskIds.length,
         );
@@ -436,7 +500,9 @@ class _ProjectWorkspace extends ConsumerWidget {
                 children: [
                   Text(
                     project.name,
-                    style: Theme.of(context).textTheme.headlineSmall
+                    style: Theme.of(context)
+                        .textTheme
+                        .headlineSmall
                         ?.copyWith(fontWeight: FontWeight.w800),
                   ),
                   Text(
@@ -610,7 +676,9 @@ class _Metric extends StatelessWidget {
               const SizedBox(height: 6),
               Text(
                 value,
-                style: Theme.of(context).textTheme.titleLarge
+                style: Theme.of(context)
+                    .textTheme
+                    .titleLarge
                     ?.copyWith(fontWeight: FontWeight.w800, color: color),
               ),
             ],
@@ -675,8 +743,7 @@ class _ProjectDashboardView extends ConsumerWidget {
         .where((goal) => !project.linkedGoalIds.contains(goal.id))
         .toList();
     final controller = ref.read(organizationControllerProvider.notifier);
-    final risk =
-        project.deadline != null &&
+    final risk = project.deadline != null &&
         project.progress < 60 &&
         project.deadline!.difference(DateTime.now()).inDays <= 14;
     final progress = state.progressFor(project);
@@ -696,7 +763,9 @@ class _ProjectDashboardView extends ConsumerWidget {
                     children: [
                       Text(
                         'Project pulse',
-                        style: Theme.of(context).textTheme.titleMedium
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium
                             ?.copyWith(fontWeight: FontWeight.w800),
                       ),
                       const SizedBox(height: 14),
@@ -745,7 +814,9 @@ class _ProjectDashboardView extends ConsumerWidget {
                         risk
                             ? 'Deadline needs attention'
                             : 'Planning looks steady',
-                        style: Theme.of(context).textTheme.titleMedium
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium
                             ?.copyWith(fontWeight: FontWeight.w800),
                       ),
                       const SizedBox(height: 8),
@@ -764,7 +835,9 @@ class _ProjectDashboardView extends ConsumerWidget {
         const SizedBox(height: 16),
         Text(
           'Milestones',
-          style: Theme.of(context).textTheme.titleMedium
+          style: Theme.of(context)
+              .textTheme
+              .titleMedium
               ?.copyWith(fontWeight: FontWeight.w800),
         ),
         const SizedBox(height: 8),
@@ -806,7 +879,9 @@ class _ProjectDashboardView extends ConsumerWidget {
             Expanded(
               child: Text(
                 'Connected goals',
-                style: Theme.of(context).textTheme.titleMedium
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
                     ?.copyWith(fontWeight: FontWeight.w800),
               ),
             ),
@@ -1045,7 +1120,9 @@ class _KanbanView extends StatelessWidget {
                       children: [
                         Text(
                           status.replaceAll('_', ' ').toUpperCase(),
-                          style: Theme.of(context).textTheme.labelMedium
+                          style: Theme.of(context)
+                              .textTheme
+                              .labelMedium
                               ?.copyWith(fontWeight: FontWeight.w800),
                         ),
                         const SizedBox(height: 8),
@@ -1369,9 +1446,8 @@ Future<(String, String)?> _form(
       ],
     ),
   );
-  final values = result == true
-      ? (name.text.trim(), description.text.trim())
-      : null;
+  final values =
+      result == true ? (name.text.trim(), description.text.trim()) : null;
   name.dispose();
   description.dispose();
   return values;
@@ -1407,9 +1483,7 @@ class _ProjectTaskLinks extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tasks = ref
-        .watch(taskControllerProvider)
-        .maybeWhen(
+    final tasks = ref.watch(taskControllerProvider).maybeWhen(
           data: (value) => value.visibleTasksFor(project.id),
           orElse: () => const [],
         );
@@ -1426,7 +1500,9 @@ class _ProjectTaskLinks extends ConsumerWidget {
                 Expanded(
                   child: Text(
                     'Tasks linked to ${project.name}',
-                    style: Theme.of(context).textTheme.titleSmall
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleSmall
                         ?.copyWith(fontWeight: FontWeight.w800),
                   ),
                 ),
@@ -1443,9 +1519,7 @@ class _ProjectTaskLinks extends ConsumerWidget {
                 'No tasks are linked yet. Create a task from this project view to keep the work connected.',
               )
             else
-              ...tasks
-                  .take(6)
-                  .map(
+              ...tasks.take(6).map(
                     (task) => ListTile(
                       contentPadding: EdgeInsets.zero,
                       dense: true,
@@ -1488,9 +1562,7 @@ class _ConnectedSystems extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final taskCount = ref
-        .watch(taskControllerProvider)
-        .maybeWhen(
+    final taskCount = ref.watch(taskControllerProvider).maybeWhen(
           data: (value) => value.visibleTasksFor(project.id).length,
           orElse: () => project.linkedTaskIds.length,
         );
@@ -1549,7 +1621,9 @@ class _ConnectedSystems extends ConsumerWidget {
           children: [
             Text(
               'Connected systems',
-              style: Theme.of(context).textTheme.titleSmall
+              style: Theme.of(context)
+                  .textTheme
+                  .titleSmall
                   ?.copyWith(fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 4),
@@ -1628,14 +1702,13 @@ Future<void> _showProjectManager(
               style: TextStyle(fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 4),
-            for (final name
-                in incomplete.isEmpty
-                    ? [
-                        'Define the next milestone',
-                        'Create one concrete linked task',
-                        'Schedule a review checkpoint',
-                      ]
-                    : incomplete.take(3))
+            for (final name in incomplete.isEmpty
+                ? [
+                    'Define the next milestone',
+                    'Create one concrete linked task',
+                    'Schedule a review checkpoint',
+                  ]
+                : incomplete.take(3))
               Padding(
                 padding: const EdgeInsets.only(bottom: 4),
                 child: Text('• $name'),

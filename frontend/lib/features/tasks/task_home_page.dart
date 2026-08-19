@@ -175,14 +175,21 @@ class _TodaySummary extends StatelessWidget {
         padding: const EdgeInsets.all(18),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [
-            const Icon(Icons.auto_awesome_rounded),
+            Icon(Icons.auto_awesome_rounded, color: colorScheme.primary),
             const SizedBox(width: 8),
-            Text('Today at a glance',
+            Text('Your progress today',
                 style: Theme.of(context)
                     .textTheme
                     .titleMedium
                     ?.copyWith(fontWeight: FontWeight.w700))
           ]),
+          const SizedBox(height: 6),
+          Text(
+            total == 0
+                ? 'Start with one meaningful next action.'
+                : '${state.completedCount} of $total tasks complete · ${(progress * 100).round()}% through today',
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
           const SizedBox(height: 16),
           Row(children: [
             _Metric(label: 'Remaining', value: '${state.remainingCount}'),
@@ -345,13 +352,13 @@ class _EmptyTasks extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
                 hasQuery
-                    ? 'No tasks match that search'
-                    : 'Your task space is clear',
+                    ? 'Nothing matches that search'
+                    : 'You have a clear starting point',
                 style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 6),
             Text(hasQuery
-                ? 'Try another phrase or filter.'
-                : 'Add the next meaningful action to get started.'),
+                ? 'Try another phrase or clear the filters.'
+                : 'Capture the smallest next action and build momentum.'),
             const SizedBox(height: 16),
             FilledButton.icon(
                 onPressed: onCreate,
@@ -371,10 +378,20 @@ class _ErrorState extends StatelessWidget {
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             const Icon(Icons.cloud_off_rounded, size: 48),
             const SizedBox(height: 12),
-            const Text('Tasks could not be loaded'),
-            Text(message, textAlign: TextAlign.center),
+            const Text('Your work is safe',
+                style: TextStyle(fontWeight: FontWeight.w700)),
+            const SizedBox(height: 6),
+            const Text(
+                'We couldn’t load tasks right now. Try again when you’re ready.'),
+            const SizedBox(height: 8),
+            Text(message,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodySmall),
             const SizedBox(height: 16),
-            FilledButton(onPressed: onRetry, child: const Text('Retry'))
+            FilledButton.icon(
+                onPressed: onRetry,
+                icon: const Icon(Icons.refresh_rounded),
+                label: const Text('Try again'))
           ])));
 }
 

@@ -37,6 +37,11 @@ class CalendarPage extends ConsumerWidget {
               tooltip: 'Calendar preferences',
               onPressed: () => _showPreferences(context, ref),
               icon: const Icon(Icons.tune_rounded)),
+          IconButton(
+              tooltip: 'New event',
+              onPressed: () =>
+                  _showEventEditor(context, ref, projectId: projectId),
+              icon: const Icon(Icons.event_available_rounded)),
         ],
       ),
       body: calendar.when(
@@ -712,9 +717,15 @@ class _EmptyCalendar extends StatelessWidget {
           padding: const EdgeInsets.all(28),
           child: Column(
             children: [
-              const Icon(Icons.event_available_rounded, size: 48),
+              Icon(Icons.event_available_rounded,
+                  size: 48, color: Theme.of(context).colorScheme.primary),
               const SizedBox(height: 12),
-              Text(message, textAlign: TextAlign.center),
+              Text(message,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.titleMedium),
+              const SizedBox(height: 6),
+              const Text('Add one meaningful block when you are ready.',
+                  textAlign: TextAlign.center),
               const SizedBox(height: 14),
               FilledButton.icon(
                   onPressed: onCreate,
@@ -766,11 +777,21 @@ class _CalendarError extends StatelessWidget {
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             const Icon(Icons.calendar_month_rounded, size: 48),
             const SizedBox(height: 12),
+            const Text('Your schedule is safe',
+                style: TextStyle(fontWeight: FontWeight.w700)),
+            const SizedBox(height: 6),
             const Text(
-                'Calendar is offline-ready but could not load this copy.'),
-            Text(message, textAlign: TextAlign.center),
+                'We couldn’t load the calendar right now. Try again when you’re ready.',
+                textAlign: TextAlign.center),
+            const SizedBox(height: 8),
+            Text(message,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodySmall),
             const SizedBox(height: 12),
-            FilledButton(onPressed: retry, child: const Text('Retry'))
+            FilledButton.icon(
+                onPressed: retry,
+                icon: const Icon(Icons.refresh_rounded),
+                label: const Text('Try again'))
           ])));
 }
 
