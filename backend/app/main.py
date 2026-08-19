@@ -8,6 +8,7 @@ from app.api.notes import router as notes_router
 from app.api.organization import router as organization_router
 from app.api.health import router as health_router
 from app.api.tasks import router as tasks_router
+from app.api.settings import router as settings_router
 from app.core.config import settings
 from app.db.migrations import ensure_additive_schema
 from app.db.session import Base, engine
@@ -18,6 +19,7 @@ from app.assistant import models as _assistant_models
 from app.organization import models as _organization_models
 from app.analytics import models as _analytics_models
 from app.automation import models as _automation_models
+from app.settings import models as _settings_models
 
 
 app = FastAPI(
@@ -34,6 +36,7 @@ app.include_router(assistant_router, prefix="/api/v1")
 app.include_router(organization_router, prefix="/api/v1")
 app.include_router(analytics_router, prefix="/api/v1")
 app.include_router(automation_router, prefix="/api/v1")
+app.include_router(settings_router, prefix="/api/v1")
 Base.metadata.create_all(bind=engine)
 ensure_additive_schema(engine)
 
@@ -57,4 +60,5 @@ def root() -> dict[str, str]:
         "organization": "/api/v1/organization",
         "analytics": "/api/v1/analytics",
         "automation": "/api/v1/automation",
+        "settings": "/api/v1/settings",
     }

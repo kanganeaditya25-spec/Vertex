@@ -8,25 +8,17 @@ import '../features/notes/notes_page.dart';
 import '../features/organization/organization_page.dart';
 import '../features/dashboard/dashboard_page.dart';
 import '../features/tasks/task_home_page.dart';
+import '../features/settings/settings_page.dart';
 
 final GoRouter appRouter = GoRouter(
   routes: [
-    GoRoute(
-      path: '/',
-      builder: (context, state) => const DashboardPage(),
-    ),
-    GoRoute(
-      path: '/tasks',
-      builder: (context, state) => const TaskHomePage(),
-    ),
+    GoRoute(path: '/', builder: (context, state) => const DashboardPage()),
+    GoRoute(path: '/tasks', builder: (context, state) => const TaskHomePage()),
     GoRoute(
       path: '/calendar',
       builder: (context, state) => const CalendarPage(),
     ),
-    GoRoute(
-      path: '/notes',
-      builder: (context, state) => const NotesPage(),
-    ),
+    GoRoute(path: '/notes', builder: (context, state) => const NotesPage()),
     GoRoute(
       path: '/assistant',
       builder: (context, state) => const AssistantPage(),
@@ -42,6 +34,10 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/automation',
       builder: (context, state) => const AutomationPage(),
+    ),
+    GoRoute(
+      path: '/settings',
+      builder: (context, state) => const SettingsPage(),
     ),
   ],
 );
