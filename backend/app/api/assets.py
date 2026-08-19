@@ -34,14 +34,19 @@ from app.assets.schemas import (
     AssetVersionRead,
     BulkAssetAction,
     AssetExportRequest,
+    AssetProcessRead,
     OcrResult,
 )
 from app.db.session import get_db
 from app.assets.services import build_zip, extract_ocr
+from app.core.configuration.settings import core_settings
+from app.core.document_engine import DocumentSource, process_document
+from app.core.storage.service import LocalContentStore
 
 router = APIRouter(prefix="/assets", tags=["assets"])
-STORAGE_ROOT = Path(os.getenv("ASSET_STORAGE_ROOT", "./data/assets")).resolve()
+STORAGE_ROOT = core_settings.storage_root.resolve()
 STORAGE_ROOT.mkdir(parents=True, exist_ok=True)
+CONTENT_STORE = LocalContentStore(STORAGE_ROOT)
 
 _TEXT_EXTENSIONS = {".txt", ".md", ".markdown", ".json", ".csv", ".py", ".dart", ".js", ".ts", ".html", ".css", ".sql", ".yaml", ".yml", ".xml", ".log"}
 _IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".svg"}
@@ -242,28 +247,16 @@ def upload_asset(
     db: Session = Depends(get_db),
 ) -> AssetRead:
     original_name = _safe_filename(file.filename or "asset")
-    digest = hashlib.sha256()
-    temporary = STORAGE_ROOT / f".upload-{uuid4().hex}.part"
-    size = 0
     try:
-        with temporary.open("wb") as output:
-            while chunk := file.file.read(1024 * 1024):
-                digest.update(chunk)
-                output.write(chunk)
-                size += len(chunk)
-        file_hash = digest.hexdigest()
-        duplicate = db.scalar(select(AssetModel).where(AssetModel.file_hash == file_hash))
+        stored = CONTENT_STORE.put_stream(original_name, iter(lambda: file.file.read(1024 * 1024), b""))
+        duplicate = db.scalar(select(AssetModel).where(AssetModel.file_hash == stored.file_hash))
         if duplicate is not None:
-            temporary.unlink(missing_ok=True)
             return _read(duplicate)
-        extension = Path(original_name).suffix.lower()
-        mime_type = file.content_type or mimetypes.guess_type(original_name)[0] or "application/octet-stream"
-        storage_key = f"{file_hash[:2]}/{file_hash}-{original_name}"
-        destination = STORAGE_ROOT / storage_key
-        destination.parent.mkdir(parents=True, exist_ok=True)
-        temporary.replace(destination)
+        extension = stored.extension
+        mime_type = file.content_type or stored.mime_type
+        destination = CONTENT_STORE.path_for(stored.key)
         preview_text = ""
-        if extension in _TEXT_EXTENSIONS and size <= 2_000_000:
+        if extension in _TEXT_EXTENSIONS and stored.size_bytes <= 2_000_000:
             preview_text = destination.read_text(encoding="utf-8", errors="replace")[:200_000]
         asset = AssetModel(
             id=f"asset-{uuid4().hex}",
@@ -272,26 +265,23 @@ def upload_asset(
             source_kind="file",
             extension=extension,
             mime_type=mime_type,
-            size_bytes=size,
-            file_hash=file_hash,
-            storage_key=storage_key,
+            size_bytes=stored.size_bytes,
+            file_hash=stored.file_hash,
+            storage_key=stored.key,
             preview_text=preview_text,
             workspace_id=workspace_id,
             project_id=project_id,
             folder_id=folder_id,
             category=category,
             tags=[value.strip() for value in tags.split(",") if value.strip()],
-            metadata_json={"original_filename": file.filename or original_name},
+            metadata_json={"original_filename": file.filename or original_name, "storage_duplicate": stored.duplicate},
         )
         db.add(asset)
         _version(db, asset, "upload")
-        _queue(db, asset, "create", {"storage_key": storage_key, "file_hash": file_hash})
+        _queue(db, asset, "create", {"storage_key": stored.key, "file_hash": stored.file_hash})
         db.commit()
         db.refresh(asset)
         return _read(asset)
-    except Exception:
-        temporary.unlink(missing_ok=True)
-        raise
     finally:
         file.file.close()
 
@@ -438,6 +428,38 @@ def create_collection(payload: AssetCollectionCreate, db: Session = Depends(get_
     db.commit()
     db.refresh(collection)
     return AssetCollectionRead.model_validate(collection)
+
+
+@router.post("/{asset_id}/process", response_model=AssetProcessRead)
+def process_asset(asset_id: str, db: Session = Depends(get_db)) -> AssetProcessRead:
+    asset = _get_or_404(db, asset_id)
+    if not asset.storage_key:
+        raise HTTPException(status_code=404, detail="Asset has no local file content")
+    path = (STORAGE_ROOT / asset.storage_key).resolve()
+    if STORAGE_ROOT not in path.parents or not path.is_file():
+        raise HTTPException(status_code=404, detail="Stored asset content not found")
+    try:
+        processed = process_document(DocumentSource(name=asset.name, path=path, mime_type=asset.mime_type, source_kind=asset.source_kind, asset_id=asset.id))
+    except (FileNotFoundError, RuntimeError, ValueError) as error:
+        raise HTTPException(status_code=422, detail=str(error)) from error
+    changes = {
+        "preview_text": processed.text[:200_000],
+        "ocr_text": processed.text if asset.asset_type == "image" else asset.ocr_text,
+        "metadata": {
+            **(asset.metadata_json or {}),
+            "processed_at": processed.processed_at.isoformat(),
+            "chunk_count": len(processed.chunks),
+            "citation_count": len(processed.citations),
+            "preview_path": str(processed.preview_path or ""),
+            "thumbnail_path": str(processed.thumbnail_path or ""),
+        },
+    }
+    _apply_update(asset, changes)
+    _version(db, asset, "process")
+    _queue(db, asset, "process", {"chunk_count": len(processed.chunks), "citation_count": len(processed.citations)})
+    db.commit()
+    db.refresh(asset)
+    return AssetProcessRead(asset=_read(asset), text=processed.text, chunk_count=len(processed.chunks), citation_count=len(processed.citations), preview_path=str(processed.preview_path or ""), thumbnail_path=str(processed.thumbnail_path or ""), warnings=processed.warnings)
 
 
 @router.post("/ocr/{asset_id}", response_model=OcrResult)

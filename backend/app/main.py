@@ -10,6 +10,10 @@ from app.api.health import router as health_router
 from app.api.tasks import router as tasks_router
 from app.api.settings import router as settings_router
 from app.api.assets import router as assets_router
+from app.api.core import router as core_router
+from app.core.configuration.settings import core_settings
+from app.core.event_bus.bus import bus
+from app.core.notifications.service import attach_default_handlers
 from app.core.config import settings
 from app.db.migrations import ensure_additive_schema
 from app.db.session import Base, engine
@@ -40,8 +44,11 @@ app.include_router(analytics_router, prefix="/api/v1")
 app.include_router(automation_router, prefix="/api/v1")
 app.include_router(settings_router, prefix="/api/v1")
 app.include_router(assets_router, prefix="/api/v1")
+app.include_router(core_router, prefix="/api/v1")
 Base.metadata.create_all(bind=engine)
 ensure_additive_schema(engine)
+core_settings.ensure_directories()
+attach_default_handlers(bus)
 
 
 @app.on_event("startup")

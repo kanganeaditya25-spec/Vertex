@@ -179,3 +179,13 @@ class ArchiveExport(BaseModel):
 class AssetExportRequest(BaseModel):
     asset_ids: list[str] = Field(min_length=1)
     filename: str = Field(default="asset-library-export.zip", max_length=160)
+
+
+class AssetProcessRead(BaseModel):
+    asset: AssetRead
+    text: str
+    chunk_count: int
+    citation_count: int
+    preview_path: str = ""
+    thumbnail_path: str = ""
+    warnings: list[str] = Field(default_factory=list)
