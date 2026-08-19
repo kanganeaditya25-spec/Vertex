@@ -10,6 +10,10 @@
 
 **Implementation commit:** `a5551ec` — `Implement Module 11 asset library and knowledge storage`
 
+**Acceptance-record commit:** `c4ffa8a` — `Record Module 11 asset library acceptance`
+
+**Final production deployment:** `dpl_9Vbg7st5tawQ2vQWHYzT6i` — `READY`
+
 ## Acceptance summary
 
 Module 11 adds a centralized Asset Library and Knowledge Storage surface to FocusFlow AI. The library is the single local-first asset catalog for files, URLs, documents, media, code, bookmarks, and knowledge resources. Asset records use stable Asset IDs, SHA-256 hashes, metadata, folder IDs, project/workspace linkage, tags, version history, preview/OCR text, storage state, and relationships to tasks, notes, calendar events, goals, reminders, and Assistant threads.
@@ -75,8 +79,10 @@ Browser storage has a finite quota, so the implementation uses an explicit 4 MiB
 | Release web build | Passed — `flutter build web --release --dart-define=PRODUCTIVITY_API_BASE_URL=https://vertex-eta-bice.vercel.app/api` |
 | Public shell synchronization | Passed — `frontend/build/web/` copied into `public/` |
 | GitHub implementation push | Passed — commit [`a5551ec`](https://github.com/kanganeaditya25-spec/Vertex/commit/a5551ec) |
-| Vercel production deployment | Passed — deployment `dpl_95yUxesXafytaHAZh59arrZ2ZNxE` reported `READY` |
+| Vercel implementation deployment | Passed — deployment `dpl_95yUxesXafytaHAZh59arrZ2ZNxE` reported `READY` |
+| Vercel final acceptance deployment | Passed — deployment `dpl_9Vbg7st5tawQ2vQWHYzT6i` reported `READY` |
 | `/assets` route | Passed — `/assets` redirected to `/assets/`, then returned HTTP 200 with the Flutter shell |
+| Stable-domain final smoke test | Passed — final `/assets` and `/` requests returned HTTP 200 with Flutter shell references |
 | Root route | Passed — HTTP 200 with Flutter shell asset references |
 | Connected browser | Passed — `/assets/` opened with page title `Productivity Dashboard` |
 
