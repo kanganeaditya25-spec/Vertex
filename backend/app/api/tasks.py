@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session, selectinload
 
+from app.core.event_bus.bus import DomainEvent, bus
 from app.db.session import get_db
 from app.models.task import (
     ChecklistItemModel,
@@ -259,6 +260,7 @@ def complete_task(task_id: str, db: Session = Depends(get_db)) -> dict:
         _record(db, next_task, "created", "recurrence")
         _queue(db, next_task, "create")
     db.commit()
+    bus.publish(DomainEvent("task.completed", {"task_id": task.id, "title": task.title, "project_id": task.project or "", "workspace_id": task.workspace or "", "goal_id": task.goal_id or "", "create_review_reminder": bool(task.repeat_rule), "review_after_minutes": 24 * 60}))
     return _serialize(_find_task(db, task.id))
 
 

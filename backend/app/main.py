@@ -11,12 +11,14 @@ from app.api.tasks import router as tasks_router
 from app.api.settings import router as settings_router
 from app.api.assets import router as assets_router
 from app.api.core import router as core_router
+from app.api.reminders import router as reminders_router
 from app.core.configuration.settings import core_settings
 from app.core.event_bus.bus import bus
 from app.core.notifications.service import attach_default_handlers
+from app.reminders.events import attach_reminder_event_handlers
 from app.core.config import settings
 from app.db.migrations import ensure_additive_schema
-from app.db.session import Base, engine
+from app.db.session import Base, SessionLocal, engine
 from app.models import task as _task_models
 from app.calendar import models as _calendar_models
 from app.notes import models as _note_models
@@ -26,6 +28,7 @@ from app.analytics import models as _analytics_models
 from app.automation import models as _automation_models
 from app.settings import models as _settings_models
 from app.assets import models as _asset_models
+from app.reminders import models as _reminder_models
 
 
 app = FastAPI(
@@ -45,10 +48,12 @@ app.include_router(automation_router, prefix="/api/v1")
 app.include_router(settings_router, prefix="/api/v1")
 app.include_router(assets_router, prefix="/api/v1")
 app.include_router(core_router, prefix="/api/v1")
+app.include_router(reminders_router, prefix="/api/v1")
 Base.metadata.create_all(bind=engine)
 ensure_additive_schema(engine)
 core_settings.ensure_directories()
 attach_default_handlers(bus)
+attach_reminder_event_handlers(bus, SessionLocal)
 
 
 @app.on_event("startup")
@@ -72,4 +77,5 @@ def root() -> dict[str, str]:
         "automation": "/api/v1/automation",
         "settings": "/api/v1/settings",
         "assets": "/api/v1/assets",
+        "reminders": "/api/v1/reminders",
     }

@@ -87,6 +87,11 @@ class _DashboardView extends ConsumerWidget {
             icon: const Icon(Icons.folder_copy_outlined),
           ),
           IconButton(
+            tooltip: 'Open Reminder Center',
+            onPressed: () => context.push('/reminders'),
+            icon: const Icon(Icons.notifications_active_outlined),
+          ),
+          IconButton(
             tooltip: 'Open Settings & Personalization',
             onPressed: () => context.push('/settings'),
             icon: const Icon(Icons.settings_outlined),
@@ -480,6 +485,11 @@ class _QuickActions extends StatelessWidget {
             avatar: const Icon(Icons.folder_copy_outlined, size: 18),
             label: const Text('Assets'),
             onPressed: () => context.push('/assets'),
+          ),
+          ActionChip(
+            avatar: const Icon(Icons.notifications_active_outlined, size: 18),
+            label: const Text('Reminders'),
+            onPressed: () => context.push('/reminders'),
           ),
           const ActionChip(
             avatar: Icon(Icons.note_add_outlined, size: 18),
