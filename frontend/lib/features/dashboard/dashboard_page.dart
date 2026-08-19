@@ -160,7 +160,12 @@ class _DashboardView extends ConsumerWidget {
           body: RefreshIndicator(
             onRefresh: controller.refresh,
             child: ListView(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+              padding: EdgeInsets.fromLTRB(
+                width >= 1440 ? (width - 1400) / 2 + 20 : 20,
+                20,
+                width >= 1440 ? (width - 1400) / 2 + 20 : 20,
+                36,
+              ),
               children: [
                 _GreetingHeader(
                   userName: snapshot.userName,
@@ -465,7 +470,9 @@ class _MissionCard extends StatelessWidget {
                       : '${recommendation.reason} · ${task.estimatedMinutes > 0 ? '${task.estimatedMinutes} min' : 'short focused step'}',
                   style: Theme.of(context).textTheme.bodySmall),
               const SizedBox(height: 16),
-              Row(
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
                 children: [
                   FilledButton.icon(
                     onPressed: task == null ? onQuickCapture : onStartFocus,
@@ -480,7 +487,6 @@ class _MissionCard extends StatelessWidget {
                             ? 'Capture next step'
                             : 'Start focus'),
                   ),
-                  const SizedBox(width: 8),
                   OutlinedButton.icon(
                       onPressed: onOpenTasks,
                       icon: const Icon(Icons.checklist),

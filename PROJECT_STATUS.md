@@ -355,3 +355,13 @@ Validation passed with **46 Flutter tests**, **52 FastAPI tests**, `flutter anal
 The Dashboard’s complete Quick actions section has been moved from the scrollable page body into a dedicated AppBar header menu labeled **Quick actions**. The menu preserves Quick capture, Start focus, New task, Calendar, Notes, Assistant, Projects, Analytics, Automation, Settings, Assets, Reminders, and Command palette. The existing Search, More destinations, Notifications, and Customize dashboard header controls remain available. The large in-page Quick actions card was removed so the Dashboard keeps attention on mission, progress, focus mode, and meaningful work. Acceptance record: `docs/DASHBOARD_QUICK_ACTIONS_HEADER_2026-08-19.md`.
 
 Validation passed with **46 Flutter tests**, `flutter analyze` reporting **No issues found**, `git diff --check`, and a successful production Flutter web release build. Commit `7f78357` was pushed to GitHub and deployed to Vercel production as `dpl_D9djvKDX2Q15mKXH29MuTt8xZKPa`, which reported **READY**. The stable root returned HTTP 200 and the live bundle contained the Quick actions header and preserved action markers.
+
+
+## FocusFlow Frontend Polish and Efficiency — 2026-08-19
+**Status:** Implemented, validated, and release-built; deployment pending.
+
+The shared frontend visual system now uses more consistent light Material 3 tokens: a 64-pixel AppBar, stronger title hierarchy, 16-pixel cards, rounded filled inputs with visible focus states, consistent 48-pixel button heights, compact chips, larger 44-pixel icon-button targets, predictable dialogs and snackbars, improved list spacing, and a visible web scrollbar. The changes preserve solid surfaces, restrained accents, offline-first behavior, and no gradients or decorative effects.
+
+The Dashboard is now constrained to a readable 1,400-pixel content width on very wide screens instead of stretching across the entire viewport. Today’s Mission actions wrap cleanly on narrow screens, which prevents overflow and makes the primary workflow easier to use on smaller devices. Acceptance record: `docs/FRONTEND_POLISH_2026-08-19.md`.
+
+Validation passed with **46 Flutter tests**, **52 FastAPI tests**, `flutter analyze` reporting **No issues found**, `git diff --check`, and a successful production Flutter web release build. The release output is synchronized into `public/`; GitHub and Vercel deployment remain the final gates.
