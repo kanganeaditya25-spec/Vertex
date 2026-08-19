@@ -6,7 +6,11 @@
 
 **Implementation commit:** [`ae14edb`](https://github.com/kanganeaditya25-spec/Vertex/commit/ae14edb)
 
-**Production deployment:** `dpl_DV8YPyQx9QUuvLNuWcTDzVxHJtBh` — `READY`
+**Implementation deployment:** `dpl_DV8YPyQx9QUuvLNuWcTDzVxHJtBh` — `READY`
+
+**Final documentation deployment:** `dpl_292JUvPDttQLwsTtJsYkxfiqhKEY` — `READY`
+
+**Final documentation commit:** [`3ae7657`](https://github.com/kanganeaditya25-spec/Vertex/commit/3ae7657)
 
 ## Purpose
 
@@ -103,7 +107,7 @@ The Asset Library now also exposes `POST /api/v1/assets/{asset_id}/process`, whi
 
 The full backend suite passed with **32 tests**. The Flutter suite passed with **17 tests**, and `flutter analyze` reported **No issues found**. Python bytecode compilation passed for `app` and `tests`. The release web build completed using the existing production API base URL and the rebuilt shell was copied into `public/`.
 
-Vercel deployment `dpl_DV8YPyQx9QUuvLNuWcTDzVxHJtBh` reached `READY`. The stable production root and `/assets` route both returned HTTP 200 with Flutter shell references. The current Vercel project serves the Express/Flutter shell; the Python FastAPI service remains independently runnable and tested under `/api/v1`. Reverse-proxying the Python service into the existing Vercel runtime is intentionally documented as a deployment follow-up rather than falsely represented as live.
+Vercel implementation deployment `dpl_DV8YPyQx9QUuvLNuWcTDzVxHJtBh` and final documentation deployment `dpl_292JUvPDttQLwsTtJsYkxfiqhKEY` both reached `READY`. The stable production root and `/assets` route both returned HTTP 200 with Flutter shell references. The current Vercel project serves the Express/Flutter shell; the Python FastAPI service remains independently runnable and tested under `/api/v1`. Reverse-proxying the Python service into the existing Vercel runtime is intentionally documented as a deployment follow-up rather than falsely represented as live.
 
 ## References
 

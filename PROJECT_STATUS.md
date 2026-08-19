@@ -4,7 +4,7 @@
 **Repository:** [kanganeaditya25-spec/Vertex](https://github.com/kanganeaditya25-spec/Vertex)
 **Public deployment:** [https://vertex-eta-bice.vercel.app/](https://vertex-eta-bice.vercel.app/)
 **Current branch:** `main`
-**Latest deployed commit:** `ae14edb` — `Implement shared core infrastructure and document engine`
+**Latest deployed commit:** `3ae7657` — `Document shared core infrastructure architecture`
 
 ## Executive summary
 
@@ -230,4 +230,4 @@ Final verification passed with **27 FastAPI tests**, **17 Flutter tests**, clean
 ## Shared Core Infrastructure & Document Engine
 The shared backend core requested for FocusFlow AI is implemented under `backend/app/core/`. It now includes AI provider contracts, privacy-preserving analytics, typed configuration, an in-process event bus, deterministic full-text search, streamed hash-deduplicated storage, an offline sync queue, storage-root security helpers, local notifications, shared utilities, and the complete document engine processor tree: PDF, DOCX, Markdown, OCR, previews, thumbnails, metadata, text extraction, indexing, URL extraction, webpage parsing, citations, and semantic chunks.
 The Asset Library now uses the shared streaming storage service and exposes `POST /api/v1/assets/{asset_id}/process` for document processing. The shared core API is available at `/api/v1/core` for capability discovery, search, metrics, notifications, and sync acknowledgments. The Flutter client has typed Dio facades under `frontend/lib/core/document_engine/` for processing, search, and capability discovery while retaining offline-safe failure behavior.
-Verification passed with **32 FastAPI tests**, **17 Flutter tests**, clean Flutter analysis, Python compilation, and a successful release web build. The implementation commit is `ae14edb`; Vercel deployment `dpl_DV8YPyQx9QUuvLNuWcTDzVxHJtBh` reported `READY`; and the root and `/assets` production routes returned HTTP 200. The architecture record is `docs/CORE_INFRASTRUCTURE_ARCHITECTURE.md`. The existing Vercel deployment continues to serve the Express/Flutter shell; the independently tested FastAPI service remains at `/api/v1` until a Python reverse-proxy deployment is introduced.
+Verification passed with **32 FastAPI tests**, **17 Flutter tests**, clean Flutter analysis, Python compilation, and a successful release web build. The implementation commit is `ae14edb`; final documentation commit is `3ae7657`; Vercel deployment `dpl_292JUvPDttQLwsTtJsYkxfiqhKEY` reported `READY`; and the root and `/assets` production routes returned HTTP 200. The architecture record is `docs/CORE_INFRASTRUCTURE_ARCHITECTURE.md`. The existing Vercel deployment continues to serve the Express/Flutter shell; the independently tested FastAPI service remains at `/api/v1` until a Python reverse-proxy deployment is introduced.
