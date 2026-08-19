@@ -1,8 +1,11 @@
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../core/app_config.dart';
 
 final authStoreProvider =
     AsyncNotifierProvider<AuthStore, AuthSession?>(AuthStore.new);
@@ -41,6 +44,7 @@ class AuthStore extends AsyncNotifier<AuthSession?> {
   static const _accountKey = 'focusflow_local_account';
   static const _sessionKey = 'focusflow_auth_session';
   SharedPreferences? _preferences;
+  final Dio _client = Dio();
 
   @override
   Future<AuthSession?> build() async {
@@ -50,14 +54,28 @@ class AuthStore extends AsyncNotifier<AuthSession?> {
     return AuthSession.fromJson(jsonDecode(raw) as Map<String, dynamic>);
   }
 
-  Future<void> signUp(
-      {required String name,
-      required String email,
-      required String password}) async {
+  Future<void> signUp({
+    required String name,
+    required String email,
+    required String password,
+  }) async {
     final normalizedName = name.trim();
     final normalizedEmail = email.trim().toLowerCase();
     _validate(normalizedName, normalizedEmail, password, requireName: true);
     final preferences = await _ready();
+
+    final apiSession = await _tryApiSession('/auth/signup', {
+      'name': normalizedName,
+      'email': normalizedEmail,
+      'password': password,
+    });
+    if (apiSession != null) {
+      await _saveLocalAccount(
+          preferences, normalizedName, normalizedEmail, password);
+      await _setSession(apiSession);
+      return;
+    }
+
     if (preferences.containsKey(_accountKey)) {
       final existing = _readAccount(preferences);
       if (existing['email'] == normalizedEmail) {
@@ -65,14 +83,8 @@ class AuthStore extends AsyncNotifier<AuthSession?> {
             'An account with this email already exists. Sign in instead.');
       }
     }
-    await preferences.setString(
-      _accountKey,
-      jsonEncode({
-        'name': normalizedName,
-        'email': normalizedEmail,
-        'passwordHash': _hash(password),
-      }),
-    );
+    await _saveLocalAccount(
+        preferences, normalizedName, normalizedEmail, password);
     await _setSession(
         AuthSession(name: normalizedName, email: normalizedEmail));
   }
@@ -81,6 +93,18 @@ class AuthStore extends AsyncNotifier<AuthSession?> {
     final normalizedEmail = email.trim().toLowerCase();
     _validate('', normalizedEmail, password);
     final preferences = await _ready();
+
+    final apiSession = await _tryApiSession('/auth/email-login', {
+      'email': normalizedEmail,
+      'password': password,
+    });
+    if (apiSession != null) {
+      await _saveLocalAccount(
+          preferences, apiSession.name, normalizedEmail, password);
+      await _setSession(apiSession);
+      return;
+    }
+
     if (!preferences.containsKey(_accountKey)) {
       throw const AuthException(
           'No local account exists yet. Create one to get started.');
@@ -100,7 +124,49 @@ class AuthStore extends AsyncNotifier<AuthSession?> {
   Future<void> signOut() async {
     final preferences = await _ready();
     await preferences.remove(_sessionKey);
+    await preferences.remove(AppConfig.authTokenKey);
     state = const AsyncData(null);
+  }
+
+  Future<AuthSession?> _tryApiSession(
+      String path, Map<String, dynamic> payload) async {
+    try {
+      final response = await _client.post<Map<String, dynamic>>(
+        '${AppConfig.apiBaseUrl}$path',
+        data: payload,
+        options: Options(
+          sendTimeout: const Duration(seconds: 5),
+          receiveTimeout: const Duration(seconds: 5),
+        ),
+      );
+      final data = response.data;
+      final token = data?['token'] as String?;
+      if (token == null || token.isEmpty) return null;
+      final preferences = await _ready();
+      await preferences.setString(AppConfig.authTokenKey, token);
+      return AuthSession(
+        name: data?['name'] as String? ?? 'there',
+        email: data?['email'] as String? ?? '',
+      );
+    } on DioException {
+      return null;
+    }
+  }
+
+  Future<void> _saveLocalAccount(
+    SharedPreferences preferences,
+    String name,
+    String email,
+    String password,
+  ) async {
+    await preferences.setString(
+      _accountKey,
+      jsonEncode({
+        'name': name,
+        'email': email,
+        'passwordHash': _hash(password),
+      }),
+    );
   }
 
   Future<SharedPreferences> _ready() async {
