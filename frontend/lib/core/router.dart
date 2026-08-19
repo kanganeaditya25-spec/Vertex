@@ -11,6 +11,7 @@ import '../features/dashboard/dashboard_page.dart';
 import '../features/tasks/task_home_page.dart';
 import '../features/settings/settings_page.dart';
 import '../features/reminders/reminders_page.dart';
+import '../features/knowledge_graph/knowledge_graph_page.dart';
 
 final GoRouter appRouter = GoRouter(
   routes: [
@@ -61,6 +62,12 @@ final GoRouter appRouter = GoRouter(
       path: '/reminders',
       builder: (context, state) =>
           RemindersPage(projectId: state.uri.queryParameters['project']),
+    ),
+    GoRoute(
+      path: '/knowledge-graph',
+      builder: (context, state) => KnowledgeGraphPage(
+        workspaceId: state.uri.queryParameters['workspace'],
+      ),
     ),
   ],
 );

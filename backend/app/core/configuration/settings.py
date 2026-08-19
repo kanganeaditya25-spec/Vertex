@@ -16,6 +16,11 @@ class CoreSettings:
     semantic_chunk_overlap: int = int(os.getenv("SEMANTIC_CHUNK_OVERLAP", "160"))
     ocr_timeout_seconds: int = int(os.getenv("OCR_TIMEOUT_SECONDS", "120"))
     notifications_enabled: bool = os.getenv("NOTIFICATIONS_ENABLED", "true").casefold() == "true"
+    log_level: str = os.getenv("CORE_LOG_LEVEL", "INFO")
+    max_log_value_chars: int = int(os.getenv("MAX_LOG_VALUE_CHARS", "500"))
+    max_metric_samples: int = int(os.getenv("MAX_METRIC_SAMPLES", "1000"))
+    max_notification_items: int = int(os.getenv("MAX_NOTIFICATION_ITEMS", "500"))
+    ai_provider: str = os.getenv("AI_PROVIDER", "disabled")
 
     def ensure_directories(self) -> None:
         self.storage_root.mkdir(parents=True, exist_ok=True)

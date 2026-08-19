@@ -1,8 +1,10 @@
 from __future__ import annotations
 
-from collections import Counter
+from collections import Counter, deque
 from dataclasses import dataclass
 from threading import Lock
+
+from app.core.configuration.settings import core_settings
 
 
 @dataclass(frozen=True)
@@ -14,7 +16,7 @@ class MetricSnapshot:
 class Metrics:
     def __init__(self) -> None:
         self._counters: Counter[str] = Counter()
-        self._timings: dict[str, list[float]] = {}
+        self._timings: dict[str, deque[float]] = {}
         self._lock = Lock()
 
     def increment(self, name: str, amount: int = 1) -> None:
@@ -23,7 +25,9 @@ class Metrics:
 
     def observe_ms(self, name: str, duration_ms: float) -> None:
         with self._lock:
-            self._timings.setdefault(name, []).append(duration_ms)
+            self._timings.setdefault(
+                name, deque(maxlen=core_settings.max_metric_samples)
+            ).append(duration_ms)
 
     def snapshot(self) -> MetricSnapshot:
         with self._lock:

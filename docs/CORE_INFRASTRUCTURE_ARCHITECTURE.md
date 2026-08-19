@@ -23,7 +23,8 @@ The design deliberately keeps the infrastructure independent of the existing fea
 ```text
 backend/app/core/
 ├── ai/
-│   └── contracts.py
+│   ├── contracts.py
+│   └── engine.py
 ├── analytics/
 │   └── metrics.py
 ├── configuration/
@@ -56,6 +57,10 @@ backend/app/core/
 │   ├── webpage_parser/processor.py
 │   ├── citation_engine/processor.py
 │   └── semantic_chunker/processor.py
+├── logging/
+│   └── service.py
+├── performance/
+│   └── service.py
 └── utils/
     └── common.py
 ```
@@ -82,7 +87,7 @@ The resulting pages are normalized into a `ProcessedDocument`. The engine genera
 
 ## Shared services
 
-`LocalContentStore` provides atomic streamed writes, SHA-256 deduplication, hash-prefix directories, safe relative paths, and metadata-only references. `SyncQueue` provides ordered pending operations and acknowledgments for future server synchronization. `EventBus` keeps processing, indexing, notifications, and analytics decoupled. `NotificationCenter` keeps local status notices available without requiring push services. `Metrics` is an in-memory runtime counter and timing surface rather than a telemetry collector.
+`LocalContentStore` provides atomic streamed writes, SHA-256 deduplication, hash-prefix directories, safe relative paths, and metadata-only references. `SyncQueue` provides ordered pending operations and acknowledgments for future server synchronization with thread-safe bounded retention. `EventBus` keeps processing, indexing, notifications, analytics, graph synchronization, and feature events decoupled; handler failures are isolated and reported. `NotificationCenter` keeps local status notices available without requiring push services and supports bounded retention, thread-safe read state, and domain-event subscribers. `Metrics` is an in-memory runtime counter and bounded timing surface rather than a telemetry collector. The Logging Engine emits structured redacted records, while the Performance Engine records bounded route timings through FastAPI middleware.
 
 `FullTextIndex` performs deterministic token scoring, phrase boosts, snippets, and source metadata preservation. It is intentionally runtime-local in this release; the Asset Library database and Flutter SharedPreferences remain the source of truth for durable metadata. This keeps the first core release offline-safe while leaving a stable adapter boundary for SQLite FTS or another local index in a future module.
 
@@ -108,6 +113,12 @@ The Asset Library now also exposes `POST /api/v1/assets/{asset_id}/process`, whi
 The full backend suite passed with **32 tests**. The Flutter suite passed with **17 tests**, and `flutter analyze` reported **No issues found**. Python bytecode compilation passed for `app` and `tests`. The release web build completed using the existing production API base URL and the rebuilt shell was copied into `public/`.
 
 Vercel implementation deployment `dpl_DV8YPyQx9QUuvLNuWcTDzVxHJtBh` and final documentation deployment `dpl_292JUvPDttQLwsTtJsYkxfiqhKEY` both reached `READY`. The stable production root and `/assets` route both returned HTTP 200 with Flutter shell references. The current Vercel project serves the Express/Flutter shell; the Python FastAPI service remains independently runnable and tested under `/api/v1`. Reverse-proxying the Python service into the existing Vercel runtime is intentionally documented as a deployment follow-up rather than falsely represented as live.
+
+## Core prompt implementation update
+
+The original core layer was functional but incomplete against the full Core Infrastructure Prompt because Logging and Performance packages were absent and the AI package exposed contracts without a reusable provider registry. The current implementation adds `CoreLogger`, `redact_fields`, `PerformanceEngine`, `PerformanceMiddleware`, `AiEngine`, `RuleBasedAiProvider`, bounded metrics and notification/sync retention, event-handler fault isolation, expanded capabilities, notification acknowledgment, and workspace-aware shared search. These additions remain offline-safe and default to no external network dependency.
+
+The current validation result is **46 FastAPI tests passed**, **27 Flutter tests passed**, clean Flutter analysis, and successful Python compilation. Final deployment identifiers are recorded after the current release build.
 
 ## References
 

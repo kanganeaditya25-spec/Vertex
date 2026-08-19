@@ -1252,6 +1252,11 @@ class _ConnectedSystems extends StatelessWidget {
           avatar: const Icon(Icons.auto_awesome_rounded, size: 18),
           label: const Text('Project AI'),
           onPressed: () => context.push('/assistant?project=$projectQuery')),
+      ActionChip(
+          avatar: const Icon(Icons.hub_outlined, size: 18),
+          label: const Text('Knowledge Graph'),
+          onPressed: () => context.push(
+              '/knowledge-graph?workspace=${Uri.encodeQueryComponent(project.workspaceId)}')),
     ];
     return Card(
       elevation: 0,

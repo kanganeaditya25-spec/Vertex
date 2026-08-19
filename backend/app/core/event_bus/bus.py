@@ -6,6 +6,9 @@ from dataclasses import dataclass, field
 from threading import RLock
 from typing import Any
 
+from app.core.analytics.metrics import metrics
+from app.core.logging.service import logger
+
 
 @dataclass(frozen=True)
 class DomainEvent:
@@ -14,6 +17,13 @@ class DomainEvent:
 
 
 EventHandler = Callable[[DomainEvent], None]
+
+
+@dataclass(frozen=True)
+class EventDispatchReport:
+    event_name: str
+    handler_count: int
+    failed_handlers: int
 
 
 class EventBus:
@@ -26,11 +36,25 @@ class EventBus:
             if handler not in self._handlers[event_name]:
                 self._handlers[event_name].append(handler)
 
-    def publish(self, event: DomainEvent) -> None:
+    def publish(self, event: DomainEvent) -> EventDispatchReport:
         with self._lock:
-            handlers = [*self._handlers.get(event.name, []), *self._handlers.get("*", [])]
+            handlers = [*self._handlers.get(event.name, []), *self._handlers.get('*', [])]
+        metrics.increment('events.published')
+        failures = 0
         for handler in handlers:
-            handler(event)
+            metrics.increment('events.handlers')
+            try:
+                handler(event)
+            except Exception as exc:  # pragma: no cover - defensive subscriber boundary
+                failures += 1
+                metrics.increment('events.handler_errors')
+                logger.error(
+                    'Event handler failed',
+                    event=event.name,
+                    handler=getattr(handler, '__qualname__', repr(handler)),
+                    error=str(exc),
+                )
+        return EventDispatchReport(event.name, len(handlers), failures)
 
     def clear(self) -> None:
         with self._lock:

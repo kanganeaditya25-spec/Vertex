@@ -92,6 +92,11 @@ class _DashboardView extends ConsumerWidget {
             icon: const Icon(Icons.notifications_active_outlined),
           ),
           IconButton(
+            tooltip: 'Open Knowledge Explorer',
+            onPressed: () => context.push('/knowledge-graph'),
+            icon: const Icon(Icons.hub_outlined),
+          ),
+          IconButton(
             tooltip: 'Open Settings & Personalization',
             onPressed: () => context.push('/settings'),
             icon: const Icon(Icons.settings_outlined),
