@@ -10,7 +10,11 @@
 
 **Implementation commit:** [`2cc466d`](https://github.com/kanganeaditya25-spec/Vertex/commit/2cc466db18880b48810939bd99867203eb35bda6) — `Implement Module 12 Reminder & Notification Engine`
 
-**Production deployment:** `dpl_2MUnaaZW8m9pExShBjoZ8A3Arias` — `READY`
+**Implementation deployment:** `dpl_2MUnaaZW8m9pExShBjoZ8A3Arias` — `READY`
+
+**Acceptance-record commit:** [`d2e21b9`](https://github.com/kanganeaditya25-spec/Vertex/commit/d2e21b9a6b07bb4ae56f58555a381df89adf5400) — `Record Module 12 reminder notification acceptance`
+
+**Final production deployment:** `dpl_4CdGGykW9u6iKr6L2zDurHEBAHgG` — `READY`, aliased to `vertex-eta-bice.vercel.app`
 
 ## Acceptance summary
 
@@ -65,7 +69,8 @@ Reminder records, immutable action history, preferences, recurrence state, and l
 | Release web build | Passed — `flutter build web --release --dart-define=PRODUCTIVITY_API_BASE_URL=https://vertex-eta-bice.vercel.app/api` |
 | Public shell synchronization | Passed — `frontend/build/web/` copied into `public/` |
 | GitHub implementation push | Passed — commit [`2cc466d`](https://github.com/kanganeaditya25-spec/Vertex/commit/2cc466db18880b48810939bd99867203eb35bda6) |
-| Vercel deployment | Passed — `dpl_2MUnaaZW8m9pExShBjoZ8A3Arias` reported `READY` and matched commit `2cc466d` |
+| Vercel implementation deployment | Passed — `dpl_2MUnaaZW8m9pExShBjoZ8A3Arias` reported `READY` and matched commit `2cc466d` |
+| Vercel final acceptance deployment | Passed — `dpl_4CdGGykW9u6iKr6L2zDurHEBAHgG` reported `READY` and matched commit `d2e21b9` |
 | `/reminders` route | Passed — HTTP 200 with the Flutter shell |
 | Root route | Passed — HTTP 200 |
 | Live bundle content | Passed — bundle contains `Reminder Center`, `Smart suggestions`, `One place for every follow-up`, and `History` strings |

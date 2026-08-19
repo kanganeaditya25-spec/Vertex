@@ -4,7 +4,7 @@
 **Repository:** [kanganeaditya25-spec/Vertex](https://github.com/kanganeaditya25-spec/Vertex)
 **Public deployment:** [https://vertex-eta-bice.vercel.app/](https://vertex-eta-bice.vercel.app/)
 **Current branch:** `main`
-**Latest deployed commit:** `3ae7657` — `Document shared core infrastructure architecture`
+**Latest deployed commit:** `d2e21b9` — `Record Module 12 reminder notification acceptance`
 
 ## Executive summary
 
@@ -241,6 +241,6 @@ Module 12 adds the offline-first Reminder Center at `/reminders`. The backend in
 
 The Flutter client adds reminder domain models, SharedPreferences-backed offline persistence, recurrence and history handling, quiet-hour-aware local due selection, a 30-second active-app worker, local notification abstraction, Riverpod state, the responsive Reminder Center, search, active/today/overdue/completed/dismissed/history filters, smart suggestions, multi-selection, bulk actions, creation, completion, snooze, and Dashboard navigation. The UI preserves flat Material 3 surfaces, restrained solid accents, accessibility-friendly controls, no gradients, no decorative effects, and no telemetry by default.
 
-Verification passed with **36 FastAPI tests**, **20 Flutter tests**, clean Flutter analysis, a successful production Flutter web build, `git diff --check`, synchronized `public/` assets, and live HTTP 200 checks for `/reminders` and `/`. Vercel deployment `dpl_2MUnaaZW8m9pExShBjoZ8A3Arias` reported `READY` and matched the implementation commit. The full acceptance record is `docs/TASK_12_REMINDER_NOTIFICATION_ENGINE.md`.
+Verification passed with **36 FastAPI tests**, **20 Flutter tests**, clean Flutter analysis, a successful production Flutter web build, `git diff --check`, synchronized `public/` assets, and live HTTP 200 checks for `/reminders` and `/`. Vercel implementation deployment `dpl_2MUnaaZW8m9pExShBjoZ8A3Arias` and final acceptance deployment `dpl_4CdGGykW9u6iKr6L2zDurHEBAHgG` both reported `READY`; the final deployment matched the acceptance-record commit. The full acceptance record is `docs/TASK_12_REMINDER_NOTIFICATION_ENGINE.md`.
 
 The current Vercel deployment continues to serve the Express/Flutter shell, while the FastAPI reminder service remains independently tested under `/api/v1`. The local worker is intentionally active while the application is open or resumes; serverless execution is not claimed as a 24/7 scheduler. Durable multi-device synchronization remains dependent on the previously documented external database/storage deployment step.
