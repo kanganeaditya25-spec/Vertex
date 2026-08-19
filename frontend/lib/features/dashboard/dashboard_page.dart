@@ -108,10 +108,9 @@ class _DashboardView extends ConsumerWidget {
                 onPressed: () => context.push('/search'),
                 icon: const Icon(Icons.search),
               ),
-              IconButton(
-                tooltip: 'Quick Capture',
-                onPressed: () => _showQuickCapture(context),
-                icon: const Icon(Icons.add_circle_outline),
+              _QuickActionsMenu(
+                controller: controller,
+                onQuickCapture: () => _showQuickCapture(context),
               ),
               PopupMenuButton<String>(
                 tooltip: 'More destinations',
@@ -203,10 +202,6 @@ class _DashboardView extends ConsumerWidget {
                 const SizedBox(height: 16),
                 if (visible.contains('focus'))
                   _FocusCard(focus: snapshot.focus, controller: controller),
-                const SizedBox(height: 16),
-                _QuickActions(
-                    controller: controller,
-                    onQuickCapture: () => _showQuickCapture(context)),
                 const SizedBox(height: 16),
                 _ResponsiveGrid(
                   columns: isDesktop ? 2 : 1,
@@ -671,90 +666,111 @@ class _FocusCard extends StatelessWidget {
   }
 }
 
-class _QuickActions extends StatelessWidget {
-  const _QuickActions({required this.controller, required this.onQuickCapture});
+class _QuickActionsMenu extends StatelessWidget {
+  const _QuickActionsMenu(
+      {required this.controller, required this.onQuickCapture});
 
   final DashboardController controller;
   final VoidCallback onQuickCapture;
 
   @override
-  Widget build(BuildContext context) {
-    return _SectionCard(
-      title: 'Quick actions',
-      icon: Icons.bolt_outlined,
-      child: Wrap(
-        spacing: 8,
-        runSpacing: 8,
-        children: [
-          ActionChip(
-            avatar: const Icon(Icons.add_circle_outline, size: 18),
-            label: const Text('Quick capture'),
-            onPressed: onQuickCapture,
-          ),
-          ActionChip(
-            avatar: const Icon(Icons.timer_outlined, size: 18),
-            label: const Text('Start focus'),
-            onPressed: controller.startFocus,
-          ),
-          ActionChip(
-            avatar: const Icon(Icons.add_task, size: 18),
-            label: const Text('New task'),
-            onPressed: () => context.push('/tasks'),
-          ),
-          ActionChip(
-            avatar: const Icon(Icons.event_outlined, size: 18),
-            label: const Text('Calendar'),
-            onPressed: () => context.push('/calendar'),
-          ),
-          ActionChip(
-            avatar: const Icon(Icons.menu_book_rounded, size: 18),
-            label: const Text('Notes'),
-            onPressed: () => context.push('/notes'),
-          ),
-          ActionChip(
-            avatar: const Icon(Icons.auto_awesome_rounded, size: 18),
-            label: const Text('Assistant'),
-            onPressed: () => context.push('/assistant'),
-          ),
-          ActionChip(
-            avatar: const Icon(Icons.account_tree_rounded, size: 18),
-            label: const Text('Projects'),
-            onPressed: () => context.push('/organization'),
-          ),
-          ActionChip(
-            avatar: const Icon(Icons.insights_rounded, size: 18),
-            label: const Text('Analytics'),
-            onPressed: () => context.push('/analytics'),
-          ),
-          ActionChip(
-            avatar: const Icon(Icons.account_tree_outlined, size: 18),
-            label: const Text('Automation'),
-            onPressed: () => context.push('/automation'),
-          ),
-          ActionChip(
-            avatar: const Icon(Icons.settings_outlined, size: 18),
-            label: const Text('Settings'),
-            onPressed: () => context.push('/settings'),
-          ),
-          ActionChip(
-            avatar: const Icon(Icons.folder_copy_outlined, size: 18),
-            label: const Text('Assets'),
-            onPressed: () => context.push('/assets'),
-          ),
-          ActionChip(
-            avatar: const Icon(Icons.notifications_active_outlined, size: 18),
-            label: const Text('Reminders'),
-            onPressed: () => context.push('/reminders'),
-          ),
-          ActionChip(
-            avatar: const Icon(Icons.search, size: 18),
-            label: const Text('Command palette'),
-            onPressed: () => context.push('/search?palette=1'),
-          ),
+  Widget build(BuildContext context) => PopupMenuButton<String>(
+        tooltip: 'Quick actions',
+        icon: const Icon(Icons.bolt_outlined),
+        onSelected: (action) {
+          switch (action) {
+            case 'capture':
+              onQuickCapture();
+            case 'focus':
+              controller.startFocus();
+            case 'tasks':
+              context.push('/tasks');
+            case 'calendar':
+              context.push('/calendar');
+            case 'notes':
+              context.push('/notes');
+            case 'assistant':
+              context.push('/assistant');
+            case 'projects':
+              context.push('/organization');
+            case 'analytics':
+              context.push('/analytics');
+            case 'automation':
+              context.push('/automation');
+            case 'settings':
+              context.push('/settings');
+            case 'assets':
+              context.push('/assets');
+            case 'reminders':
+              context.push('/reminders');
+            case 'palette':
+              context.push('/search?palette=1');
+          }
+        },
+        itemBuilder: (_) => const [
+          PopupMenuItem(
+              value: 'capture',
+              child: _QuickActionMenuItem(
+                  Icons.add_circle_outline, 'Quick capture')),
+          PopupMenuItem(
+              value: 'focus',
+              child: _QuickActionMenuItem(Icons.timer_outlined, 'Start focus')),
+          PopupMenuItem(
+              value: 'tasks',
+              child: _QuickActionMenuItem(Icons.add_task, 'New task')),
+          PopupMenuItem(
+              value: 'calendar',
+              child: _QuickActionMenuItem(Icons.event_outlined, 'Calendar')),
+          PopupMenuItem(
+              value: 'notes',
+              child: _QuickActionMenuItem(Icons.menu_book_rounded, 'Notes')),
+          PopupMenuItem(
+              value: 'assistant',
+              child: _QuickActionMenuItem(
+                  Icons.auto_awesome_rounded, 'Assistant')),
+          PopupMenuItem(
+              value: 'projects',
+              child:
+                  _QuickActionMenuItem(Icons.account_tree_rounded, 'Projects')),
+          PopupMenuItem(
+              value: 'analytics',
+              child: _QuickActionMenuItem(Icons.insights_rounded, 'Analytics')),
+          PopupMenuItem(
+              value: 'automation',
+              child: _QuickActionMenuItem(
+                  Icons.account_tree_outlined, 'Automation')),
+          PopupMenuItem(
+              value: 'settings',
+              child: _QuickActionMenuItem(Icons.settings_outlined, 'Settings')),
+          PopupMenuItem(
+              value: 'assets',
+              child:
+                  _QuickActionMenuItem(Icons.folder_copy_outlined, 'Assets')),
+          PopupMenuItem(
+              value: 'reminders',
+              child: _QuickActionMenuItem(
+                  Icons.notifications_active_outlined, 'Reminders')),
+          PopupMenuItem(
+              value: 'palette',
+              child: _QuickActionMenuItem(Icons.search, 'Command palette')),
         ],
-      ),
-    );
-  }
+      );
+}
+
+class _QuickActionMenuItem extends StatelessWidget {
+  const _QuickActionMenuItem(this.icon, this.label);
+
+  final IconData icon;
+  final String label;
+
+  final double iconSize = 18;
+
+  @override
+  Widget build(BuildContext context) => Row(children: [
+        Icon(icon, size: iconSize),
+        const SizedBox(width: 12),
+        Text(label),
+      ]);
 }
 
 class _CalendarCard extends StatelessWidget {
