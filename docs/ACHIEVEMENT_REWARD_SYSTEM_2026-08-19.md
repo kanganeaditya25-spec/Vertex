@@ -2,7 +2,7 @@
 
 **Date:** 19 August 2026
 **Phase:** Phase 3 — Product Stabilization & UX Overhaul
-**Status:** Implemented and release-built; deployment pending the acceptance commit
+**Status:** Implemented, committed, deployed, and smoke-tested
 
 ## Purpose
 
@@ -53,6 +53,6 @@ The regression tests cover XP awarding, duplicate-completion protection, streaks
 
 ## Deployment acceptance gate
 
-The release bundle must be committed to `main`, pushed to [kanganeaditya25-spec/Vertex](https://github.com/kanganeaditya25-spec/Vertex), and allowed to complete the Vercel deployment. After deployment, smoke checks must confirm HTTP 200 for the root route and that the served bundle contains the strings `Progress you can feel`, `Streak`, `XP`, `Trophies`, and `FocusFlow`.
+The implementation was committed to `main` in `3e18d75` and deployed to Vercel production as deployment `dpl_D2fxYZKamSwmDi3oFZ4X3yFaFrjH`, which reported **READY** for the stable project. The stable URL `https://vertex-eta-bice.vercel.app/` returned HTTP 200. The served `main.dart.js` bundle contained `Progress you can feel`, `Streak`, `XP`, `Trophies`, and `FocusFlow`.
 
 This milestone does not close Phase 3. It is an additional stabilization slice. Module 16 remains paused until the Phase 3 exit record confirms that stabilization and integration gates are complete.
